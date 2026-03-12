@@ -495,34 +495,11 @@ const CategoryExplorer = () => {
           </div>
         </motion.div>
 
-        {/* Interactive Number Explorer */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: animateIn ? 1 : 0, y: animateIn ? 0 : 20 }}
-          transition={{ delay: 1.4, duration: 0.6 }}
-          className="mt-16 bg-gradient-to-r from-gray-900 to-gray-800 rounded-2xl p-8 text-white"
-        >
-          <h3 className="text-2xl font-bold mb-4">Popular Product IDs</h3>
-          <p className="text-gray-400 mb-6">Click any number to explore products in that range</p>
-          <div className="flex flex-wrap gap-2 max-h-40 overflow-y-auto p-2 bg-gray-800 rounded-lg">
-            {Array.from({ length: 50 }, (_, i) => i + 1).map(num => (
-              <motion.span
-                key={num}
-                whileHover={{ scale: 1.2, backgroundColor: '#3b82f6' }}
-                className="inline-block px-3 py-1 bg-gray-700 rounded text-sm cursor-pointer hover:bg-blue-600 transition-all"
-                onClick={() => navigate(`/products?minId=${num * 10}&maxId=${num * 10 + 9}`)}
-              >
-                {num * 10}
-              </motion.span>
-            ))}
-          </div>
-        </motion.div>
-
         {/* Category Promotion Banner */}
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: animateIn ? 1 : 0, scale: animateIn ? 1 : 0.9 }}
-          transition={{ delay: 1.6, duration: 0.6 }}
+          transition={{ delay: 1.4, duration: 0.6 }}
           className="mt-16 bg-gradient-to-r from-purple-600 to-pink-600 rounded-2xl p-8 text-white text-center"
         >
           <h3 className="text-3xl font-bold mb-4">Can't find what you're looking for?</h3>
