@@ -6,6 +6,7 @@ const Home = () => {
   const navigate = useNavigate();
   const [hoveredCategory, setHoveredCategory] = useState(null);
   const [activeDeal, setActiveDeal] = useState(0);
+  const [currentSlide, setCurrentSlide] = useState(0);
   const heroRef = useRef(null);
   const { scrollYProgress } = useScroll({
     target: heroRef,
@@ -24,6 +25,14 @@ const Home = () => {
     return () => clearInterval(timer);
   }, []);
 
+  // Auto-rotate hero slides
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentSlide((prev) => (prev + 1) % heroSlides.length);
+    }, 4000);
+    return () => clearInterval(timer);
+  }, []);
+
   const handleProductClick = (productId) => {
     navigate(`/product/${productId}`);
   };
@@ -31,6 +40,58 @@ const Home = () => {
   const handleCategoryClick = (categoryName) => {
     navigate(`/products?category=${categoryName}`);
   };
+
+  // Hero slides with products
+  const heroSlides = [
+    {
+      id: 1,
+      title: "Premium Audio",
+      subtitle: "Sony WH-1000XM5",
+      description: "Industry-leading noise cancellation",
+      price: 299000,
+      oldPrice: 399000,
+      discount: 25,
+      image: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800&auto=format&fit=crop",
+      bgGradient: "from-blue-600 to-purple-600",
+      productId: 3
+    },
+    {
+      id: 2,
+      title: "Ultimate Performance",
+      subtitle: "Samsung Galaxy S22 Ultra",
+      description: "The ultimate smartphone experience",
+      price: 331000,
+      oldPrice: 399000,
+      discount: 17,
+      image: "https://images.unsplash.com/photo-1610945415295-d9bbf067e59c?w=800&auto=format&fit=crop",
+      bgGradient: "from-purple-600 to-pink-600",
+      productId: 1
+    },
+    {
+      id: 3,
+      title: "Smart Living",
+      subtitle: "Smart LED Desk Lamp Pro",
+      description: "Lighting that adapts to you",
+      price: 35000,
+      oldPrice: 55000,
+      discount: 36,
+      image: "https://images.unsplash.com/photo-1507473885765-e6ed057f782c?w=800&auto=format&fit=crop",
+      bgGradient: "from-amber-500 to-orange-500",
+      productId: 4
+    },
+    {
+      id: 4,
+      title: "Power & Portability",
+      subtitle: "Samsung Galaxy Tab S9 Ultra",
+      description: "Your mobile office anywhere",
+      price: 899000,
+      oldPrice: 1199000,
+      discount: 25,
+      image: "https://images.unsplash.com/photo-1587033411391-5d9e51cce126?w=800&auto=format&fit=crop",
+      bgGradient: "from-green-500 to-teal-500",
+      productId: 2
+    }
+  ];
 
   // Main categories with stunning visuals
   const mainCategories = [
@@ -195,130 +256,152 @@ const Home = () => {
     { id: 108, name: 'Musical Instruments', icon: '🎸', count: '892', color: 'from-violet-400 to-purple-500', trending: true },
   ];
 
-  // Brand partners
-  const brands = [
-    { name: 'Apple', logo: '🍎', color: 'from-gray-500 to-gray-700' },
-    { name: 'Samsung', logo: '📱', color: 'from-blue-500 to-blue-700' },
-    { name: 'Sony', logo: '🎮', color: 'from-black to-gray-800' },
-    { name: 'LG', logo: '💡', color: 'from-red-500 to-red-700' },
-    { name: 'Dell', logo: '💻', color: 'from-blue-600 to-blue-800' },
-    { name: 'HP', logo: '🖨️', color: 'from-teal-500 to-teal-700' },
-  ];
-
   return (
     <div className="bg-gray-50 overflow-hidden">
-      {/* Hero Section - Parallax with video-like effect */}
-      <motion.section 
-        ref={heroRef}
-        style={{ opacity: heroOpacity, scale: heroScale, y: heroY }}
-        className="relative h-screen flex items-center justify-center overflow-hidden"
-      >
-        {/* Animated background */}
-        <div className="absolute inset-0">
-          <div className="absolute inset-0 bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 animate-gradient-x"></div>
-          <motion.div 
-            animate={{ 
-              scale: [1, 1.2, 1],
-              rotate: [0, 180, 360],
-            }}
-            transition={{ 
-              duration: 20,
-              repeat: Infinity,
-              ease: "linear"
-            }}
-            className="absolute -top-1/2 -right-1/2 w-full h-full bg-white opacity-10 rounded-full blur-3xl"
-          />
-          <motion.div 
-            animate={{ 
-              scale: [1, 1.3, 1],
-              rotate: [0, -180, -360],
-            }}
-            transition={{ 
-              duration: 25,
-              repeat: Infinity,
-              ease: "linear"
-            }}
-            className="absolute -bottom-1/2 -left-1/2 w-full h-full bg-white opacity-10 rounded-full blur-3xl"
-          />
-        </div>
-
-        {/* Floating elements */}
-        {[...Array(20)].map((_, i) => (
+      {/* Hero Section - Product Slideshow */}
+      <section className="relative h-screen overflow-hidden">
+        {/* Slides */}
+        <AnimatePresence mode="wait">
           <motion.div
-            key={i}
-            className="absolute w-2 h-2 bg-white rounded-full"
-            initial={{
-              x: Math.random() * window.innerWidth,
-              y: Math.random() * window.innerHeight,
-            }}
-            animate={{
-              y: [null, -30, 30, -30],
-              x: [null, 30, -30, 30],
-            }}
-            transition={{
-              duration: Math.random() * 5 + 5,
-              repeat: Infinity,
-              ease: "linear",
-            }}
-            style={{
-              opacity: 0.2 + Math.random() * 0.3,
-            }}
-          />
-        ))}
-
-        <div className="relative z-10 text-center text-white px-4 max-w-6xl mx-auto">
-          <motion.div
-            initial={{ opacity: 0, y: 50 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
+            key={currentSlide}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.7 }}
+            className="absolute inset-0"
           >
-            <span className="inline-block px-4 py-2 bg-white/20 backdrop-blur-lg rounded-full text-sm mb-6">
-              ✨ New Season, New Arrivals
-            </span>
-            <h1 className="text-6xl md:text-8xl font-black mb-6 leading-tight">
-              It's Up to
-              <span className="block text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 to-pink-300">
-                You
-              </span>
-            </h1>
-            <p className="text-xl md:text-2xl mb-8 max-w-2xl mx-auto opacity-90">
-              Customer journey is everything. Discover amazing products tailored just for you.
-            </p>
-            
-            {/* CTA Buttons */}
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={() => navigate('/products')}
-                className="group relative px-8 py-4 bg-white text-gray-900 rounded-full font-semibold text-lg overflow-hidden"
-              >
-                <span className="relative z-10">Explore Offers</span>
-                <motion.div 
-                  className="absolute inset-0 bg-gradient-to-r from-yellow-400 to-orange-400"
-                  initial={{ x: '-100%' }}
-                  whileHover={{ x: 0 }}
-                  transition={{ duration: 0.3 }}
-                />
-              </motion.button>
-              
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={() => navigate('/categories')}
-                className="px-8 py-4 border-2 border-white text-white rounded-full font-semibold text-lg hover:bg-white hover:text-gray-900 transition-all"
-              >
-                Browse Categories
-              </motion.button>
+            {/* Background Image with Overlay */}
+            <div className="absolute inset-0">
+              <img 
+                src={heroSlides[currentSlide].image} 
+                alt={heroSlides[currentSlide].title}
+                className="w-full h-full object-cover"
+              />
+              <div className={`absolute inset-0 bg-gradient-to-r ${heroSlides[currentSlide].bgGradient} opacity-90`}></div>
+            </div>
+
+            {/* Content */}
+            <div className="relative h-full max-w-7xl mx-auto px-4 flex items-center">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+                {/* Left side - Text content */}
+                <motion.div
+                  initial={{ x: -50, opacity: 0 }}
+                  animate={{ x: 0, opacity: 1 }}
+                  transition={{ delay: 0.2, duration: 0.5 }}
+                  className="text-white"
+                >
+                  <span className="inline-block px-4 py-2 bg-white/20 backdrop-blur-sm rounded-full text-sm mb-6">
+                    ✨ New Season, New Arrivals
+                  </span>
+                  <h1 className="text-5xl md:text-6xl font-black mb-4">
+                    {heroSlides[currentSlide].title}
+                  </h1>
+                  <h2 className="text-3xl md:text-4xl font-bold mb-4 text-white/90">
+                    {heroSlides[currentSlide].subtitle}
+                  </h2>
+                  <p className="text-xl mb-6 text-white/80">
+                    {heroSlides[currentSlide].description}
+                  </p>
+                  
+                  {/* Price */}
+                  <div className="flex items-baseline gap-3 mb-8">
+                    <span className="text-4xl font-bold">
+                      {heroSlides[currentSlide].price.toLocaleString()} RWF
+                    </span>
+                    <span className="text-xl text-white/60 line-through">
+                      {heroSlides[currentSlide].oldPrice.toLocaleString()} RWF
+                    </span>
+                    <span className="px-3 py-1 bg-red-500 text-white text-sm font-bold rounded-full">
+                      -{heroSlides[currentSlide].discount}%
+                    </span>
+                  </div>
+
+                  {/* CTA Buttons */}
+                  <div className="flex flex-col sm:flex-row gap-4">
+                    <motion.button
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      onClick={() => handleProductClick(heroSlides[currentSlide].productId)}
+                      className="px-8 py-4 bg-white text-gray-900 rounded-lg font-semibold text-lg hover:shadow-xl transition-all"
+                    >
+                      Shop Now
+                    </motion.button>
+                    <motion.button
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      onClick={() => navigate('/products')}
+                      className="px-8 py-4 border-2 border-white text-white rounded-lg font-semibold text-lg hover:bg-white hover:text-gray-900 transition-all"
+                    >
+                      View All
+                    </motion.button>
+                  </div>
+                </motion.div>
+
+                {/* Right side - Product image */}
+                <motion.div
+                  initial={{ x: 50, opacity: 0 }}
+                  animate={{ x: 0, opacity: 1 }}
+                  transition={{ delay: 0.4, duration: 0.5 }}
+                  className="hidden lg:block"
+                >
+                  <div className="relative">
+                    <motion.img 
+                      src={heroSlides[currentSlide].image} 
+                      alt={heroSlides[currentSlide].title}
+                      className="w-full h-auto rounded-2xl shadow-2xl"
+                      animate={{ y: [0, -10, 0] }}
+                      transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+                    />
+                    {/* Floating badge */}
+                    <motion.div 
+                      animate={{ rotate: [0, 10, -10, 0] }}
+                      transition={{ duration: 5, repeat: Infinity }}
+                      className="absolute -top-4 -right-4 bg-yellow-400 text-gray-900 px-4 py-2 rounded-lg font-bold shadow-lg"
+                    >
+                      Limited Offer
+                    </motion.div>
+                  </div>
+                </motion.div>
+              </div>
             </div>
           </motion.div>
+        </AnimatePresence>
+
+        {/* Slide indicators */}
+        <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 flex gap-2 z-10">
+          {heroSlides.map((_, index) => (
+            <button
+              key={index}
+              onClick={() => setCurrentSlide(index)}
+              className={`transition-all duration-300 ${
+                currentSlide === index 
+                  ? 'w-8 h-2 bg-white' 
+                  : 'w-2 h-2 bg-white/50 hover:bg-white/80'
+              } rounded-full`}
+            />
+          ))}
         </div>
+
+        {/* Navigation arrows */}
+        <button
+          onClick={() => setCurrentSlide((prev) => (prev - 1 + heroSlides.length) % heroSlides.length)}
+          className="absolute left-4 top-1/2 transform -translate-y-1/2 w-10 h-10 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-white/40 transition-all z-10"
+        >
+          ←
+        </button>
+        <button
+          onClick={() => setCurrentSlide((prev) => (prev + 1) % heroSlides.length)}
+          className="absolute right-4 top-1/2 transform -translate-y-1/2 w-10 h-10 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-white/40 transition-all z-10"
+        >
+          →
+        </button>
 
         {/* Scroll indicator */}
         <motion.div 
           animate={{ y: [0, 10, 0] }}
           transition={{ duration: 2, repeat: Infinity }}
-          className="absolute bottom-8 left-1/2 transform -translate-x-1/2"
+          className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-10"
+          style={{ bottom: '80px' }}
         >
           <div className="w-6 h-10 border-2 border-white rounded-full flex justify-center">
             <motion.div 
@@ -328,7 +411,7 @@ const Home = () => {
             />
           </div>
         </motion.div>
-      </motion.section>
+      </section>
 
       {/* Stats Banner - Floating cards */}
       <section className="relative -mt-20 z-20">
@@ -444,54 +527,6 @@ const Home = () => {
               </motion.div>
             ))}
           </div>
-        </div>
-      </section>
-
-      {/* Shopping made easy - 3D Card */}
-      <section className="py-20 bg-gradient-to-br from-blue-900 to-purple-900">
-        <div className="max-w-7xl mx-auto px-4">
-          <motion.div
-            initial={{ opacity: 0, rotateX: -15 }}
-            whileInView={{ opacity: 1, rotateX: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.8 }}
-            className="relative perspective-1000"
-          >
-            <div className="bg-white/10 backdrop-blur-lg rounded-3xl p-12 transform-gpu preserve-3d hover:rotateX-5 transition-all duration-500">
-              <div className="flex flex-col md:flex-row items-center justify-between">
-                <div className="text-white mb-6 md:mb-0">
-                  <span className="inline-block px-4 py-2 bg-white/20 rounded-full text-sm mb-4">
-                    🚀 New Feature
-                  </span>
-                  <h3 className="text-3xl md:text-4xl font-bold mb-2">Shopping made easy</h3>
-                  <p className="text-xl opacity-90 mb-4">Buy online, save delivery and hassle-free returns.</p>
-                  <div className="flex gap-4">
-                    <motion.button
-                      whileHover={{ scale: 1.05 }}
-                      onClick={() => navigate('/products')}
-                      className="px-6 py-3 bg-white text-blue-900 rounded-xl font-semibold"
-                    >
-                      Start Shopping
-                    </motion.button>
-                    <motion.button
-                      whileHover={{ scale: 1.05 }}
-                      onClick={() => navigate('/categories')}
-                      className="px-6 py-3 border-2 border-white text-white rounded-xl font-semibold"
-                    >
-                      Learn More
-                    </motion.button>
-                  </div>
-                </div>
-                <motion.div
-                  animate={{ rotateY: [0, 360] }}
-                  transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-                  className="text-9xl"
-                >
-                  🛍️
-                </motion.div>
-              </div>
-            </div>
-          </motion.div>
         </div>
       </section>
 
@@ -720,95 +755,6 @@ const Home = () => {
               </motion.div>
             ))}
           </div>
-        </div>
-      </section>
-
-      {/* Brand Partners */}
-      <section className="py-20 bg-gray-900">
-        <div className="max-w-7xl mx-auto px-4">
-          <motion.h2
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="text-3xl font-bold text-white text-center mb-12"
-          >
-            Trusted by Leading Brands
-          </motion.h2>
-
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
-            {brands.map((brand, index) => (
-              <motion.div
-                key={brand.name}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: index * 0.1 }}
-                whileHover={{ scale: 1.1, rotate: 5 }}
-                onClick={() => navigate(`/products?brand=${brand.name}`)}
-                className={`bg-gradient-to-br ${brand.color} p-6 rounded-2xl text-white text-center shadow-xl cursor-pointer`}
-              >
-                <div className="text-4xl mb-2">{brand.logo}</div>
-                <div className="font-semibold">{brand.name}</div>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Newsletter Section */}
-      <section className="py-20 bg-gradient-to-r from-blue-600 to-purple-600 relative overflow-hidden">
-        <motion.div
-          animate={{ 
-            scale: [1, 1.2, 1],
-            rotate: [0, 90, 0],
-          }}
-          transition={{ 
-            duration: 20,
-            repeat: Infinity,
-            ease: "linear"
-          }}
-          className="absolute -top-1/2 -right-1/2 w-full h-full bg-white opacity-5 rounded-full blur-3xl"
-        />
-        
-        <div className="relative z-10 max-w-4xl mx-auto px-4 text-center text-white">
-          <motion.h2
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="text-4xl md:text-5xl font-black mb-4"
-          >
-            Stay in the Loop
-          </motion.h2>
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.1 }}
-            className="text-xl mb-8 opacity-90"
-          >
-            Subscribe to get exclusive deals, new arrivals, and special offers
-          </motion.p>
-          
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.2 }}
-            className="flex flex-col sm:flex-row gap-4 max-w-md mx-auto"
-          >
-            <input
-              type="email"
-              placeholder="Enter your email"
-              className="flex-1 px-6 py-4 rounded-xl text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-4 focus:ring-yellow-400"
-            />
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="px-8 py-4 bg-yellow-400 text-gray-900 rounded-xl font-bold hover:bg-yellow-500 transition-colors"
-            >
-              Subscribe
-            </motion.button>
-          </motion.div>
         </div>
       </section>
     </div>
