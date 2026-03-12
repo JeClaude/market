@@ -9,10 +9,16 @@ import Checkout from './pages/Checkout';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import CategoryExplorer from './pages/CategoryExplorer';
+import ScrollToTop from './components/ScrollToTop';
 
 function App() {
   return (
     <Router>
+      <ScrollToTop 
+        behavior="smooth" 
+        delay={100} 
+        offset={80} // Offset for fixed headers (adjust based on your navbar height)
+      />
       <div className="min-h-screen flex flex-col">
         <Navbar />
         <main className="flex-grow">

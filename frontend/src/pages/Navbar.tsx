@@ -1,34 +1,52 @@
 import { Link } from 'react-router-dom';
+import { useState } from 'react';
+import Cart from './Cart';
 
 const Navbar = () => {
+  const [isCartOpen, setIsCartOpen] = useState(false);
+
   return (
-    <nav className="bg-white shadow-md">
-      <div className="max-w-7xl mx-auto px-4">
-        <div className="flex justify-between items-center h-16">
-          <Link to="/" className="text-xl font-bold text-gray-800">
-            Ability Traders
-          </Link>
-          
-          <div className="flex space-x-6">
-            <Link to="/" className="text-gray-600 hover:text-gray-900">
-              Home
+    <>
+      <nav className="bg-white shadow-md">
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="flex justify-between items-center h-16">
+            <Link to="/" className="text-xl font-bold text-gray-800">
+              Ability Traders
             </Link>
-            <Link to="/categories" className="text-gray-600 hover:text-gray-900 font-medium">
-              Categories
-            </Link>
-            <Link to="/products" className="text-gray-600 hover:text-gray-900">
-              Products
-            </Link>
-            <Link to="/cart" className="text-gray-600 hover:text-gray-900">
-              Cart
-            </Link>
-            <Link to="/login" className="text-gray-600 hover:text-gray-900">
-              Login
-            </Link>
+            
+            <div className="flex space-x-6 items-center">
+              <Link to="/" className="text-gray-600 hover:text-gray-900">
+                Home
+              </Link>
+              <Link to="/categories" className="text-gray-600 hover:text-gray-900">
+                Categories
+              </Link>
+              <Link to="/products" className="text-gray-600 hover:text-gray-900">
+                Products
+              </Link>
+              
+              {/* Cart Button */}
+              <button
+                onClick={() => setIsCartOpen(true)}
+                className="relative p-2 text-gray-600 hover:text-gray-900 focus:outline-none"
+              >
+                <span className="text-xl">🛒</span>
+                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center">
+                  3
+                </span>
+              </button>
+              
+              <Link to="/login" className="text-gray-600 hover:text-gray-900">
+                Login
+              </Link>
+            </div>
           </div>
         </div>
-      </div>
-    </nav>
+      </nav>
+
+      {/* Cart Sidebar */}
+      <Cart isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />
+    </>
   );
 };
 

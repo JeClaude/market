@@ -1,31 +1,20 @@
-import { Link, useSearchParams } from 'react-router-dom';
-import { useState } from 'react';
+import { Link, useSearchParams, useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
 
 // Mock products data
 const products = [
-  { id: 1, name: 'TWK TK-802 Wireless Headphones', price: 25000, category: 'Ikoranabuhanga', subcategory: 'Ibinyabiziga', image: 'https://via.placeholder.com/200' },
-  { id: 2, name: "Men's Patterned Briefcase", price: 35000, category: 'Imyambaro', subcategory: 'Imitako', image: 'https://via.placeholder.com/200' },
-  { id: 3, name: 'Universal LED/LCD TV Stand', price: 45000, category: 'Ibyo mu rugo', subcategory: 'Ibindi', image: 'https://via.placeholder.com/200' },
-  { id: 4, name: 'Samsung USB-C Adapter', price: 15000, category: 'Ikoranabuhanga', subcategory: 'Imiringa', image: 'https://via.placeholder.com/200' },
-  { id: 5, name: 'A25 Portable Bluetooth Speaker', price: 12000, category: 'Ikoranabuhanga', subcategory: 'Ibinyabiziga', image: 'https://via.placeholder.com/200' },
-  { id: 6, name: "Men's Graphic Wave T-Shirt", price: 14000, category: 'Imyambaro', subcategory: 'Imisatsi', image: 'https://via.placeholder.com/200' },
-  { id: 7, name: "Men's Classic Mini Watch", price: 14000, category: 'Imitako', subcategory: 'Ibindi', image: 'https://via.placeholder.com/200' },
-  { id: 8, name: 'JBL Tune 1000BT Pro', price: 29000, category: 'Ikoranabuhanga', subcategory: 'Ibinyabiziga', image: 'https://via.placeholder.com/200' },
-  { id: 9, name: 'Abana Rice 5kg', price: 10000, category: 'Ibyo mu gikoni', subcategory: 'Abana', image: 'https://via.placeholder.com/200' },
-  { id: 10, name: 'Amasaha Premium Beans', price: 2500, category: 'Ibyo mu gikoni', subcategory: 'Amasaha', image: 'https://via.placeholder.com/200' },
-  { id: 11, name: 'Amatara Cooking Oil', price: 8000, category: 'Ibyo mu gikoni', subcategory: 'Amatara', image: 'https://via.placeholder.com/200' },
-  { id: 12, name: 'Imiringa Smart LED TV', price: 350000, category: 'Ikoranabuhanga', subcategory: 'Imiringa', image: 'https://via.placeholder.com/200' },
-  { id: 13, name: 'Premium Coffee Maker', price: 75000, category: 'Ibyo mu gikoni', subcategory: 'Ibindi', image: 'https://via.placeholder.com/200' },
-  { id: 14, name: 'Sports Running Shoes', price: 45000, category: 'Imyambaro', subcategory: 'Ibya siporo', image: 'https://via.placeholder.com/200' },
-  { id: 15, name: 'Leather Wallet', price: 18000, category: 'Imitako', subcategory: 'Imyambaro', image: 'https://via.placeholder.com/200' },
-  { id: 16, name: 'Bluetooth Earbuds', price: 32000, category: 'Ikoranabuhanga', subcategory: 'Ibinyabiziga', image: 'https://via.placeholder.com/200' },
-  { id: 17, name: 'Yoga Mat', price: 22000, category: 'Ibya siporo', subcategory: 'Ibindi', image: 'https://via.placeholder.com/200' },
-  { id: 18, name: 'Ceramic Dinner Set', price: 55000, category: 'Ibyo mu rugo', subcategory: 'Ibyo mu gikoni', image: 'https://via.placeholder.com/200' },
-  { id: 19, name: 'Electric Kettle', price: 28000, category: 'Ibyo mu gikoni', subcategory: 'Ikoranabuhanga', image: 'https://via.placeholder.com/200' },
-  { id: 20, name: 'Desk Lamp', price: 12000, category: 'Ibyo mu rugo', subcategory: 'Ibindi', image: 'https://via.placeholder.com/200' },
-  { id: 21, name: 'Backpack', price: 32000, category: 'Imyambaro', subcategory: 'Imitako', image: 'https://via.placeholder.com/200' },
-  { id: 22, name: 'Wireless Mouse', price: 8500, category: 'Ikoranabuhanga', subcategory: 'Ibinyabiziga', image: 'https://via.placeholder.com/200' },
-  { id: 23, name: 'Soccer Ball', price: 15000, category: 'Ibya siporo', subcategory: 'Ibindi', image: 'https://via.placeholder.com/200' },
+  { id: 1, name: 'A25 Portable Bluetooth Speaker', price: 12000, category: 'Ikoranabuhanga', subcategory: 'Ibinyabiziga', image: 'https://images.unsplash.com/photo-1608043152269-423dbba4e7e1?w=200' },
+  { id: 2, name: "Men's Graphic Wave T-Shirt", price: 14000, category: 'Imyambaro', subcategory: 'Imisatsi', image: 'https://images.unsplash.com/photo-1581655353564-df123a1eb820?w=200' },
+  { id: 3, name: "Men's Classic Mini Watch", price: 14000, category: 'Imitako', subcategory: 'Ibindi', image: 'https://images.unsplash.com/photo-1524592094714-0f0654e20314?w=200' },
+  { id: 4, name: 'JBL Tune 1000BT Pro', price: 29000, category: 'Ikoranabuhanga', subcategory: 'Ibinyabiziga', image: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=200' },
+  { id: 5, name: 'Abana Rice 5kg', price: 10000, category: 'Ibyo mu gikoni', subcategory: 'Abana', image: 'https://images.unsplash.com/photo-1586201375761-83865001e8ac?w=200' },
+  { id: 6, name: 'Amasaha Premium Beans', price: 2500, category: 'Ibyo mu gikoni', subcategory: 'Amasaha', image: 'https://images.unsplash.com/photo-1551462149-ffb53a5e3d7f?w=200' },
+  { id: 7, name: 'Amatara Cooking Oil', price: 8000, category: 'Ibyo mu gikoni', subcategory: 'Amatara', image: 'https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?w=200' },
+  { id: 8, name: 'Imiringa Smart LED TV', price: 350000, category: 'Ikoranabuhanga', subcategory: 'Imiringa', image: 'https://images.unsplash.com/photo-1593784991095-a205069470b6?w=200' },
+  { id: 9, name: 'TWK TK-802 Wireless Headphones', price: 25000, category: 'Ikoranabuhanga', subcategory: 'Ibinyabiziga', image: 'https://images.unsplash.com/photo-1585298723682-7115561c51b7?w=200' },
+  { id: 10, name: "Men's Patterned Briefcase", price: 35000, category: 'Imyambaro', subcategory: 'Imitako', image: 'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=200' },
+  { id: 11, name: 'Universal LED/LCD TV Stand', price: 45000, category: 'Ibyo mu rugo', subcategory: 'Ibindi', image: 'https://images.unsplash.com/photo-1586171198141-8f1f9be6b8a6?w=200' },
+  { id: 12, name: 'Samsung USB-C Adapter', price: 15000, category: 'Ikoranabuhanga', subcategory: 'Imiringa', image: 'https://images.unsplash.com/photo-1612178991541-b48cc8e92a4d?w=200' },
 ];
 
 // Categories from the image
@@ -46,6 +35,7 @@ const categories = [
 ];
 
 const Products = () => {
+  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const searchQuery = searchParams.get('search')?.toLowerCase() || '';
   const [selectedCategory, setSelectedCategory] = useState('All');
@@ -87,38 +77,36 @@ const Products = () => {
 
   const handlePageChange = (pageNumber) => {
     setCurrentPage(pageNumber);
-    // Scroll to top of products grid
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleProductClick = (productId) => {
+    navigate(`/product/${productId}`);
   };
 
   // Generate page numbers to display
   const getPageNumbers = () => {
     const pageNumbers = [];
-    const maxPagesToShow = 5; // Show 5 page numbers at a time
+    const maxPagesToShow = 5;
     
     if (totalPages <= maxPagesToShow) {
-      // Show all pages if total pages are less than max to show
       for (let i = 1; i <= totalPages; i++) {
         pageNumbers.push(i);
       }
     } else {
-      // Show pages with ellipsis
       if (currentPage <= 3) {
-        // Near the start
         for (let i = 1; i <= 4; i++) {
           pageNumbers.push(i);
         }
         pageNumbers.push('...');
         pageNumbers.push(totalPages);
       } else if (currentPage >= totalPages - 2) {
-        // Near the end
         pageNumbers.push(1);
         pageNumbers.push('...');
         for (let i = totalPages - 3; i <= totalPages; i++) {
           pageNumbers.push(i);
         }
       } else {
-        // Middle
         pageNumbers.push(1);
         pageNumbers.push('...');
         for (let i = currentPage - 1; i <= currentPage + 1; i++) {
@@ -203,9 +191,16 @@ const Products = () => {
           {currentProducts.length > 0 ? (
             currentProducts.map(product => (
               <div key={product.id} className="border border-gray-200 rounded-lg p-3 hover:shadow-md transition-shadow">
-                {/* Product Image Placeholder */}
-                <div className="bg-gray-100 h-32 mb-2 rounded flex items-center justify-center text-gray-400 text-xs">
-                  Product Image
+                {/* Product Image - Clickable */}
+                <div 
+                  onClick={() => handleProductClick(product.id)}
+                  className="bg-gray-100 h-32 mb-2 rounded flex items-center justify-center text-gray-400 text-xs cursor-pointer overflow-hidden"
+                >
+                  <img 
+                    src={product.image} 
+                    alt={product.name}
+                    className="w-full h-full object-cover hover:scale-110 transition-transform duration-300"
+                  />
                 </div>
                 
                 <h3 className="font-medium text-xs mb-1 line-clamp-2">{product.name}</h3>
@@ -235,8 +230,11 @@ const Products = () => {
                   </span>
                 </div>
 
-                {/* Gura Nonaha button */}
-                <button className="w-full bg-black text-white py-1.5 rounded text-xs hover:bg-gray-800 transition-colors">
+                {/* Gura Nonaha button - Clickable */}
+                <button 
+                  onClick={() => handleProductClick(product.id)}
+                  className="w-full bg-black text-white py-1.5 rounded text-xs hover:bg-gray-800 transition-colors cursor-pointer"
+                >
                   Gura Nonaha
                 </button>
 
