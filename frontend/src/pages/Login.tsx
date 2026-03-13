@@ -11,27 +11,73 @@ const Login = () => {
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
-  const handleEmailSubmit = (e: React.FormEvent) => {
+  // STEP 1 — CHECK EMAIL
+  const handleEmailSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email) return;
+
     setIsLoading(true);
-    // Simulate checking if email exists
-    setTimeout(() => {
-      setIsLoading(false);
-      setStep("password");
-    }, 800);
+
+    try {
+      const res = await fetch("http://localhost:5000/api/auth/check-email", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ email })
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        setStep("password");
+      } else {
+        alert(data.message || "Email not found");
+      }
+
+    } catch (error) {
+      console.error(error);
+      alert("Server error");
+    }
+
+    setIsLoading(false);
   };
 
-  const handlePasswordSubmit = (e: React.FormEvent) => {
+  // STEP 2 — VERIFY PASSWORD
+  const handlePasswordSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!password) return;
+
     setIsLoading(true);
-    // Simulate login
-    setTimeout(() => {
-      setIsLoading(false);
-      alert("Login successful! (Demo)");
-      navigate("/");
-    }, 800);
+
+    try {
+      const res = await fetch("http://localhost:5000/api/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          email,
+          password
+        })
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        localStorage.setItem("user", JSON.stringify(data.user));
+        alert("Login successful!");
+        navigate("/");
+      } else {
+        alert(data.message || "Incorrect password");
+      }
+
+    } catch (error) {
+      console.error(error);
+      alert("Server error");
+    }
+
+    setIsLoading(false);
   };
 
   const handleBack = () => {
@@ -52,8 +98,10 @@ const Login = () => {
                 exit={{ opacity: 0, y: -10 }}
                 transition={{ duration: 0.2 }}
               >
-                <h1 className="text-2xl font-semibold text-gray-900 text-center mb-6">Sign in to your account</h1>
-                
+                <h1 className="text-2xl font-semibold text-gray-900 text-center mb-6">
+                  Sign in to your account
+                </h1>
+
                 <form onSubmit={handleEmailSubmit}>
                   <div className="mb-4">
                     <input
@@ -72,9 +120,9 @@ const Login = () => {
                     whileHover={{ scale: 1.01 }}
                     whileTap={{ scale: 0.99 }}
                     className={`w-full py-3 bg-blue-600 text-white rounded-lg font-medium transition-all ${
-                      !email || isLoading 
-                        ? 'opacity-50 cursor-not-allowed' 
-                        : 'hover:bg-blue-700'
+                      !email || isLoading
+                        ? "opacity-50 cursor-not-allowed"
+                        : "hover:bg-blue-700"
                     }`}
                   >
                     {isLoading ? (
@@ -99,32 +147,51 @@ const Login = () => {
                 <div className="space-y-3">
                   <button className="w-full flex items-center justify-center gap-3 px-4 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
                     <FcGoogle className="w-5 h-5" />
-                    <span className="text-sm font-medium text-gray-700">Continue with Google</span>
+                    <span className="text-sm font-medium text-gray-700">
+                      Continue with Google
+                    </span>
                   </button>
 
                   <button className="w-full flex items-center justify-center gap-3 px-4 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
                     <FaFacebook className="w-5 h-5 text-blue-600" />
-                    <span className="text-sm font-medium text-gray-700">Continue with Facebook</span>
+                    <span className="text-sm font-medium text-gray-700">
+                      Continue with Facebook
+                    </span>
                   </button>
 
                   <button className="w-full flex items-center justify-center gap-3 px-4 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
                     <FaApple className="w-5 h-5 text-gray-900" />
-                    <span className="text-sm font-medium text-gray-700">Continue with Apple</span>
+                    <span className="text-sm font-medium text-gray-700">
+                      Continue with Apple
+                    </span>
                   </button>
                 </div>
 
                 <p className="mt-6 text-center text-sm text-gray-600">
                   Don't have an account?{" "}
-                  <Link to="/register" className="text-blue-600 hover:underline font-medium">
+                  <Link
+                    to="/register"
+                    className="text-blue-600 hover:underline font-medium"
+                  >
                     Sign up
                   </Link>
                 </p>
 
                 <p className="mt-4 text-center text-xs text-gray-400">
                   By continuing, you agree to our{" "}
-                  <Link to="/terms" className="text-gray-500 hover:underline">User Agreement</Link>{" "}
+                  <Link
+                    to="/terms"
+                    className="text-gray-500 hover:underline"
+                  >
+                    User Agreement
+                  </Link>{" "}
                   and{" "}
-                  <Link to="/privacy" className="text-gray-500 hover:underline">Privacy Notice</Link>
+                  <Link
+                    to="/privacy"
+                    className="text-gray-500 hover:underline"
+                  >
+                    Privacy Notice
+                  </Link>
                 </p>
               </motion.div>
             ) : (
@@ -140,13 +207,25 @@ const Login = () => {
                     onClick={handleBack}
                     className="p-1 hover:bg-gray-100 rounded-full transition-colors"
                   >
-                    <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                    <svg
+                      className="w-5 h-5 text-gray-500"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M15 19l-7-7 7-7"
+                      />
                     </svg>
                   </button>
-                  <h1 className="text-2xl font-semibold text-gray-900">Enter your password</h1>
+                  <h1 className="text-2xl font-semibold text-gray-900">
+                    Enter your password
+                  </h1>
                 </div>
-                
+
                 <div className="mb-4 p-3 bg-gray-50 rounded-lg">
                   <p className="text-sm text-gray-600">{email}</p>
                 </div>
@@ -164,7 +243,10 @@ const Login = () => {
                   </div>
 
                   <div className="text-right mb-4">
-                    <Link to="/forgot-password" className="text-sm text-blue-600 hover:underline">
+                    <Link
+                      to="/forgot-password"
+                      className="text-sm text-blue-600 hover:underline"
+                    >
                       Forgot password?
                     </Link>
                   </div>
@@ -175,9 +257,9 @@ const Login = () => {
                     whileHover={{ scale: 1.01 }}
                     whileTap={{ scale: 0.99 }}
                     className={`w-full py-3 bg-blue-600 text-white rounded-lg font-medium transition-all ${
-                      !password || isLoading 
-                        ? 'opacity-50 cursor-not-allowed' 
-                        : 'hover:bg-blue-700'
+                      !password || isLoading
+                        ? "opacity-50 cursor-not-allowed"
+                        : "hover:bg-blue-700"
                     }`}
                   >
                     {isLoading ? (
