@@ -111,7 +111,7 @@ const Navbar = () => {
           </div>
         </div>
 
-        {/* Mobile Menu Dropdown - Simplified with only essential links */}
+        {/* Mobile Menu Dropdown */}
         <div className={`md:hidden transition-all duration-300 overflow-hidden bg-white ${
           isMobileMenuOpen ? 'max-h-64 mt-2' : 'max-h-0'
         }`}>
@@ -153,7 +153,7 @@ const Navbar = () => {
       <div className="hidden md:block h-16"></div>
       <div className="block md:hidden h-24"></div>
 
-      {/* Cart Sidebar */}
+      {/* Cart Sidebar - FIXED: Now passing the required props */}
       <Cart isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />
     </>
   );
