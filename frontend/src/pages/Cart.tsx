@@ -9,7 +9,13 @@ const initialCartItems = [
   { id: 3, name: 'Wireless Headphones Pro', price: 45000, quantity: 1, image: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=200', category: 'Electronics' },
 ];
 
-const Cart = ({ isOpen, onClose }) => {
+// ✅ Add props type
+type CartProps = {
+  isOpen: boolean;
+  onClose: () => void;
+};
+
+const Cart: React.FC<CartProps> = ({ isOpen, onClose }) => {
   const [cartItems, setCartItems] = useState(initialCartItems);
   const [couponCode, setCouponCode] = useState('');
   const [couponApplied, setCouponApplied] = useState(false);
@@ -21,7 +27,7 @@ const Cart = ({ isOpen, onClose }) => {
   const discount = couponApplied ? subtotal * 0.1 : 0;
   const total = subtotal + shipping + tax - discount;
 
-  const updateQuantity = (id, newQuantity) => {
+  const updateQuantity = (id: number, newQuantity: number) => {
     if (newQuantity < 1) return;
     setCartItems(items =>
       items.map(item =>
@@ -30,7 +36,7 @@ const Cart = ({ isOpen, onClose }) => {
     );
   };
 
-  const removeItem = (id) => {
+  const removeItem = (id: number) => {
     setCartItems(items => items.filter(item => item.id !== id));
   };
 
