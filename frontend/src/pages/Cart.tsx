@@ -2,48 +2,36 @@ import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useState } from 'react';
 
-// Mock cart data
-const initialCartItems = [
-  { id: 1, name: 'A25 Portable Bluetooth Speaker', price: 12000, quantity: 2, image: 'https://images.unsplash.com/photo-1608043152269-423dbba4e7e1?w=200', category: 'Electronics' },
-  { id: 2, name: "Men's Graphic Wave T-Shirt", price: 14000, quantity: 1, image: 'https://images.unsplash.com/photo-1581655353564-df123a1eb820?w=200', category: 'Clothing' },
-  { id: 3, name: 'Wireless Headphones Pro', price: 45000, quantity: 1, image: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=200', category: 'Electronics' },
-];
+type CartItem = {
+  id: number;
+  name: string;
+  price: number;
+  quantity: number;
+  image: string;
+  category: string;
+};
 
-// ✅ Add props type
 type CartProps = {
   isOpen: boolean;
   onClose: () => void;
+  cartItems: CartItem[];
+  setCartItems: React.Dispatch<React.SetStateAction<CartItem[]>>;
 };
 
-const Cart: React.FC<CartProps> = ({ isOpen, onClose }) => {
-  const [cartItems, setCartItems] = useState(initialCartItems);
-  const [couponCode, setCouponCode] = useState('');
-  const [couponApplied, setCouponApplied] = useState(false);
+const Cart: React.FC<CartProps> = ({ isOpen, onClose, cartItems, setCartItems }) => {
 
-  // Calculate totals
-  const subtotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+  const subtotal = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
   const shipping = subtotal > 50000 ? 0 : 5000;
   const tax = subtotal * 0.18;
-  const discount = couponApplied ? subtotal * 0.1 : 0;
-  const total = subtotal + shipping + tax - discount;
+  const total = subtotal + shipping + tax;
 
   const updateQuantity = (id: number, newQuantity: number) => {
     if (newQuantity < 1) return;
-    setCartItems(items =>
-      items.map(item =>
-        item.id === id ? { ...item, quantity: newQuantity } : item
-      )
-    );
+    setCartItems(items => items.map(item => item.id === id ? { ...item, quantity: newQuantity } : item));
   };
 
   const removeItem = (id: number) => {
     setCartItems(items => items.filter(item => item.id !== id));
-  };
-
-  const applyCoupon = () => {
-    if (couponCode.toUpperCase() === 'SAVE10') {
-      setCouponApplied(true);
-    }
   };
 
   return (
@@ -71,6 +59,7 @@ const Cart: React.FC<CartProps> = ({ isOpen, onClose }) => {
             transition={{ type: 'spring', damping: 30, stiffness: 300 }}
             className="fixed top-0 right-0 h-full w-full md:w-96 bg-white shadow-2xl z-50 overflow-hidden flex flex-col"
           >
+
             {/* Header */}
             <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-4">
               <div className="flex justify-between items-center">
@@ -78,18 +67,13 @@ const Cart: React.FC<CartProps> = ({ isOpen, onClose }) => {
                   <span className="text-2xl">🛒</span>
                   <h2 className="text-xl font-bold">Your Cart</h2>
                 </div>
-                <button 
-                  onClick={onClose}
-                  className="p-1 hover:bg-white/20 rounded-lg transition-colors"
-                >
+                <button onClick={onClose} className="p-1 hover:bg-white/20 rounded-lg transition-colors">
                   <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                   </svg>
                 </button>
               </div>
-              <p className="text-sm opacity-90 mt-1">
-                {cartItems.length} {cartItems.length === 1 ? 'item' : 'items'}
-              </p>
+              <p className="text-sm opacity-90 mt-1">{cartItems.length} {cartItems.length === 1 ? 'item' : 'items'}</p>
             </div>
 
             {/* Cart Items */}
@@ -116,20 +100,14 @@ const Cart: React.FC<CartProps> = ({ isOpen, onClose }) => {
                     exit={{ opacity: 0, x: 100 }}
                     className="flex gap-3 bg-gray-50 rounded-lg p-3 relative group"
                   >
-                    {/* Product Image */}
                     <div className="w-20 h-20 bg-gray-200 rounded-lg overflow-hidden flex-shrink-0">
-                      <img 
-                        src={item.image} 
-                        alt={item.name}
-                        className="w-full h-full object-cover"
-                      />
+                      <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
                     </div>
 
-                    {/* Product Details */}
                     <div className="flex-1">
                       <h3 className="font-semibold text-sm mb-1 line-clamp-2">{item.name}</h3>
                       <p className="text-xs text-gray-500 mb-2">{item.category}</p>
-                      
+
                       <div className="flex items-center justify-between">
                         <div className="flex items-center border border-gray-300 rounded-lg">
                           <button
@@ -146,12 +124,9 @@ const Cart: React.FC<CartProps> = ({ isOpen, onClose }) => {
                             +
                           </button>
                         </div>
-                        <span className="font-bold text-blue-600">
-                          {(item.price * item.quantity).toLocaleString()} RWF
-                        </span>
+                        <span className="font-bold text-blue-600">{(item.price * item.quantity).toLocaleString()} RWF</span>
                       </div>
 
-                      {/* Remove button */}
                       <button
                         onClick={() => removeItem(item.id)}
                         className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity text-red-500 hover:text-red-700"
@@ -166,69 +141,23 @@ const Cart: React.FC<CartProps> = ({ isOpen, onClose }) => {
               )}
             </div>
 
-            {/* Coupon Section */}
-            {cartItems.length > 0 && (
-              <div className="p-4 border-t border-gray-200">
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    value={couponCode}
-                    onChange={(e) => setCouponCode(e.target.value)}
-                    placeholder="Coupon code"
-                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                  <button
-                    onClick={applyCoupon}
-                    disabled={couponApplied}
-                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                      couponApplied
-                        ? 'bg-green-100 text-green-700 cursor-not-allowed'
-                        : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                    }`}
-                  >
-                    {couponApplied ? 'Applied ✓' : 'Apply'}
-                  </button>
-                </div>
-                {couponApplied && (
-                  <p className="text-xs text-green-600 mt-2">
-                    🎉 10% discount applied!
-                  </p>
-                )}
-              </div>
-            )}
-
-            {/* Order Summary */}
+            {/* Order Summary & Buttons */}
             {cartItems.length > 0 && (
               <div className="p-4 border-t border-gray-200 bg-gray-50">
                 <h3 className="font-semibold mb-3">Order Summary</h3>
-                
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
                     <span className="text-gray-600">Subtotal</span>
                     <span>{subtotal.toLocaleString()} RWF</span>
                   </div>
-                  
                   <div className="flex justify-between">
                     <span className="text-gray-600">Shipping</span>
-                    {shipping === 0 ? (
-                      <span className="text-green-600">Free</span>
-                    ) : (
-                      <span>{shipping.toLocaleString()} RWF</span>
-                    )}
+                    {shipping === 0 ? <span className="text-green-600">Free</span> : <span>{shipping.toLocaleString()} RWF</span>}
                   </div>
-                  
                   <div className="flex justify-between">
                     <span className="text-gray-600">Tax (18% VAT)</span>
                     <span>{tax.toLocaleString()} RWF</span>
                   </div>
-                  
-                  {discount > 0 && (
-                    <div className="flex justify-between text-green-600">
-                      <span>Discount (10%)</span>
-                      <span>-{discount.toLocaleString()} RWF</span>
-                    </div>
-                  )}
-                  
                   <div className="border-t border-gray-300 my-2 pt-2">
                     <div className="flex justify-between font-bold text-lg">
                       <span>Total</span>

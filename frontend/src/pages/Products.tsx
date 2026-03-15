@@ -2,19 +2,20 @@ import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 
 // Mock products data
+// Mock products data - all electronics
 const products = [
-  { id: 1, name: 'A25 Portable Bluetooth Speaker', price: 12000, category: 'Ikoranabuhanga', subcategory: 'Ibinyabiziga', image: 'https://images.unsplash.com/photo-1608043152269-423dbba4e7e1?w=200' },
-  { id: 2, name: "Men's Graphic Wave T-Shirt", price: 14000, category: 'Imyambaro', subcategory: 'Imisatsi', image: 'https://images.unsplash.com/photo-1581655353564-df123a1eb820?w=200' },
-  { id: 3, name: "Men's Classic Mini Watch", price: 14000, category: 'Imitako', subcategory: 'Ibindi', image: 'https://images.unsplash.com/photo-1524592094714-0f0654e20314?w=200' },
-  { id: 4, name: 'JBL Tune 1000BT Pro', price: 29000, category: 'Ikoranabuhanga', subcategory: 'Ibinyabiziga', image: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=200' },
-  { id: 5, name: 'Abana Rice 5kg', price: 10000, category: 'Ibyo mu gikoni', subcategory: 'Abana', image: 'https://images.unsplash.com/photo-1586201375761-83865001e8ac?w=200' },
-  { id: 6, name: 'Amasaha Premium Beans', price: 2500, category: 'Ibyo mu gikoni', subcategory: 'Amasaha', image: 'https://images.unsplash.com/photo-1551462149-ffb53a5e3d7f?w=200' },
-  { id: 7, name: 'Amatara Cooking Oil', price: 8000, category: 'Ibyo mu gikoni', subcategory: 'Amatara', image: 'https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?w=200' },
-  { id: 8, name: 'Imiringa Smart LED TV', price: 350000, category: 'Ikoranabuhanga', subcategory: 'Imiringa', image: 'https://images.unsplash.com/photo-1593784991095-a205069470b6?w=200' },
-  { id: 9, name: 'TWK TK-802 Wireless Headphones', price: 25000, category: 'Ikoranabuhanga', subcategory: 'Ibinyabiziga', image: 'https://images.unsplash.com/photo-1585298723682-7115561c51b7?w=200' },
-  { id: 10, name: "Men's Patterned Briefcase", price: 35000, category: 'Imyambaro', subcategory: 'Imitako', image: 'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=200' },
-  { id: 11, name: 'Universal LED/LCD TV Stand', price: 45000, category: 'Ibyo mu rugo', subcategory: 'Ibindi', image: 'https://images.unsplash.com/photo-1586171198141-8f1f9be6b8a6?w=200' },
-  { id: 12, name: 'Samsung USB-C Adapter', price: 15000, category: 'Ikoranabuhanga', subcategory: 'Imiringa', image: 'https://images.unsplash.com/photo-1612178991541-b48cc8e92a4d?w=200' },
+  { id: 1, name: 'A25 Portable Bluetooth Speaker', price: 12000, category: 'Ikoranabuhanga', subcategory: 'Audio', image: 'https://images.unsplash.com/photo-1608043152269-423dbba4e7e1?w=200' },
+  { id: 2, name: 'Wireless Gaming Mouse', price: 14000, category: 'Ikoranabuhanga', subcategory: 'Computer Accessories', image: 'https://images.unsplash.com/photo-1593642532973-d31b6557fa68?w=200' },
+  { id: 3, name: 'Smart Watch Series 7', price: 14000, category: 'Ikoranabuhanga', subcategory: 'Wearables', image: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=200' },
+  { id: 4, name: 'JBL Tune 1000BT Pro', price: 29000, category: 'Ikoranabuhanga', subcategory: 'Audio', image: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=200' },
+  { id: 5, name: 'Samsung LED Monitor 24"', price: 100000, category: 'Ikoranabuhanga', subcategory: 'Computer Accessories', image: 'https://images.unsplash.com/photo-1581091215367-34b29bcd2d20?w=200' },
+  { id: 6, name: 'Apple AirPods Pro', price: 35000, category: 'Ikoranabuhanga', subcategory: 'Audio', image: 'https://images.unsplash.com/photo-1598970434795-0c54fe7c0642?w=200' },
+  { id: 7, name: 'GoPro Hero 10', price: 150000, category: 'Ikoranabuhanga', subcategory: 'Cameras', image: 'https://images.unsplash.com/photo-1606813902893-0efc94e0e5f5?w=200' },
+  { id: 8, name: 'Imiringa Smart LED TV', price: 350000, category: 'Ikoranabuhanga', subcategory: 'TVs', image: 'https://images.unsplash.com/photo-1593784991095-a205069470b6?w=200' },
+  { id: 9, name: 'TWK TK-802 Wireless Headphones', price: 25000, category: 'Ikoranabuhanga', subcategory: 'Audio', image: 'https://images.unsplash.com/photo-1585298723682-7115561c51b7?w=200' },
+  { id: 10, name: 'Mechanical Gaming Keyboard', price: 35000, category: 'Ikoranabuhanga', subcategory: 'Computer Accessories', image: 'https://images.unsplash.com/photo-1617179029750-d0b2e6f9a96a?w=200' },
+  { id: 11, name: 'Universal Laptop Stand', price: 45000, category: 'Ikoranabuhanga', subcategory: 'Computer Accessories', image: 'https://images.unsplash.com/photo-1586171198141-8f1f9be6b8a6?w=200' },
+  { id: 12, name: 'Samsung USB-C Adapter', price: 15000, category: 'Ikoranabuhanga', subcategory: 'Computer Accessories', image: 'https://images.unsplash.com/photo-1612178991541-b48cc8e92a4d?w=200' },
 ];
 
 // Categories from the image
