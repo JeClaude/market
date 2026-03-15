@@ -5,7 +5,7 @@ import { FcGoogle } from "react-icons/fc";
 import { FaFacebook, FaApple } from "react-icons/fa";
 
 type LoginProps = {
-  setIsLoggedIn: (val: boolean) => void; // ✅ new prop for reactive navbar
+  setIsLoggedIn: (val: boolean) => void;
 };
 
 const Login: React.FC<LoginProps> = ({ setIsLoggedIn }) => {
@@ -67,7 +67,7 @@ const Login: React.FC<LoginProps> = ({ setIsLoggedIn }) => {
         localStorage.setItem("token", data.token);
         localStorage.setItem("user", JSON.stringify(data.user));
 
-        // ✅ update navbar immediately
+        // Update navbar immediately
         setIsLoggedIn(true);
 
         navigate(from, { replace: true });
@@ -100,15 +100,18 @@ const Login: React.FC<LoginProps> = ({ setIsLoggedIn }) => {
                 exit={{ opacity: 0, y: -10 }}
                 transition={{ duration: 0.2 }}
               >
-                {/* Your email form and buttons remain unchanged */}
                 <h1 className="text-2xl font-semibold text-gray-900 text-center mb-6">
                   Sign in to your account
                 </h1>
+                
+                {/* Error Message */}
                 {emailError && (
-                  <div className="mb-2 w-full bg-red-50 text-red-600 font-medium px-3 py-2 rounded-md text-center">
-                    {emailError}
+                  <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+                    <p className="text-sm text-red-600 text-center">{emailError}</p>
                   </div>
                 )}
+                
+                {/* Email Form */}
                 <form onSubmit={handleEmailSubmit}>
                   <div className="mb-4">
                     <input
@@ -120,6 +123,8 @@ const Login: React.FC<LoginProps> = ({ setIsLoggedIn }) => {
                       autoFocus
                     />
                   </div>
+                  
+                  {/* Continue Button */}
                   <motion.button
                     type="submit"
                     disabled={!email || isLoading}
@@ -138,6 +143,16 @@ const Login: React.FC<LoginProps> = ({ setIsLoggedIn }) => {
                     )}
                   </motion.button>
                 </form>
+
+                {/* Create Account Link - ADDED HERE */}
+                <p className="mt-4 text-center text-sm text-gray-600">
+                  Don't have an account?{" "}
+                  <Link to="/register" className="text-blue-600 hover:underline font-medium">
+                    Create one now
+                  </Link>
+                </p>
+
+                {/* Divider */}
                 <div className="relative my-6">
                   <div className="absolute inset-0 flex items-center">
                     <div className="w-full border-t border-gray-200"></div>
@@ -147,29 +162,38 @@ const Login: React.FC<LoginProps> = ({ setIsLoggedIn }) => {
                   </div>
                 </div>
 
+                {/* Social Buttons */}
                 <div className="space-y-3">
-                  <button className="w-full flex items-center justify-center gap-3 px-4 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+                  <button 
+                    type="button"
+                    className="w-full flex items-center justify-center gap-3 px-4 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                  >
                     <FcGoogle className="w-5 h-5" />
                     <span className="text-sm font-medium text-gray-700">
                       Continue with Google
                     </span>
                   </button>
 
-                  <button className="w-full flex items-center justify-center gap-3 px-4 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+                  <button 
+                    type="button"
+                    className="w-full flex items-center justify-center gap-3 px-4 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                  >
                     <FaFacebook className="w-5 h-5 text-blue-600" />
                     <span className="text-sm font-medium text-gray-700">
                       Continue with Facebook
                     </span>
                   </button>
 
-                  <button className="w-full flex items-center justify-center gap-3 px-4 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+                  <button 
+                    type="button"
+                    className="w-full flex items-center justify-center gap-3 px-4 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                  >
                     <FaApple className="w-5 h-5 text-gray-900" />
                     <span className="text-sm font-medium text-gray-700">
                       Continue with Apple
                     </span>
                   </button>
                 </div>
-                {/* Rest of social buttons and signup link unchanged */}
               </motion.div>
             ) : (
               <motion.div
@@ -179,21 +203,33 @@ const Login: React.FC<LoginProps> = ({ setIsLoggedIn }) => {
                 exit={{ opacity: 0, y: -10 }}
                 transition={{ duration: 0.2 }}
               >
-                {/* Password form unchanged */}
+                {/* Header with Back Button */}
                 <div className="flex items-center gap-2 mb-6">
-                  <button onClick={handleBack} className="p-1 hover:bg-gray-100 rounded-full transition-colors">
-                    ←
+                  <button 
+                    onClick={handleBack} 
+                    className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                    aria-label="Go back"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                    </svg>
                   </button>
                   <h1 className="text-2xl font-semibold text-gray-900">Enter your password</h1>
                 </div>
+                
+                {/* Error Message */}
                 {passwordError && (
-                  <div className="mb-2 w-full bg-red-50 text-red-600 font-medium px-3 py-2 rounded-md text-center">
-                    {passwordError}
+                  <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+                    <p className="text-sm text-red-600 text-center">{passwordError}</p>
                   </div>
                 )}
+                
+                {/* Email Display */}
                 <div className="mb-4 p-3 bg-gray-50 rounded-lg">
                   <p className="text-sm text-gray-600">{email}</p>
                 </div>
+                
+                {/* Password Form */}
                 <form onSubmit={handlePasswordSubmit}>
                   <div className="mb-4">
                     <input
@@ -201,18 +237,45 @@ const Login: React.FC<LoginProps> = ({ setIsLoggedIn }) => {
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       placeholder="Password"
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                       autoFocus
                     />
                   </div>
+                  
+                  {/* Forgot Password Link */}
+                  <div className="text-right mb-4">
+                    <Link to="/forgot-password" className="text-sm text-blue-600 hover:underline">
+                      Forgot password?
+                    </Link>
+                  </div>
+                  
+                  {/* Sign In Button */}
                   <motion.button
                     type="submit"
                     disabled={!password || isLoading}
-                    className="w-full py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                    whileHover={{ scale: 1.01 }}
+                    whileTap={{ scale: 0.99 }}
+                    className={`w-full py-3 bg-blue-600 text-white rounded-lg font-medium transition-all ${
+                      !password || isLoading ? "opacity-50 cursor-not-allowed" : "hover:bg-blue-700"
+                    }`}
                   >
-                    {isLoading ? "Signing in..." : "Sign in"}
+                    {isLoading ? (
+                      <div className="flex items-center justify-center">
+                        <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                      </div>
+                    ) : (
+                      "Sign in"
+                    )}
                   </motion.button>
                 </form>
+
+                {/* Create Account Link - Also add here for password step */}
+                <p className="mt-4 text-center text-sm text-gray-600">
+                  Don't have an account?{" "}
+                  <Link to="/register" className="text-blue-600 hover:underline font-medium">
+                    Create one now
+                  </Link>
+                </p>
               </motion.div>
             )}
           </AnimatePresence>
