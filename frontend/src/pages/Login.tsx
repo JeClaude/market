@@ -31,7 +31,7 @@ const Login: React.FC<LoginProps> = ({ setIsLoggedIn }) => {
 
     setIsLoading(true);
     try {
-      const res = await fetch('${API_URL}/api/auth/check-email', {
+      const res = await fetch('${API_URL}api/auth/check-email', {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email }),
@@ -57,7 +57,7 @@ const Login: React.FC<LoginProps> = ({ setIsLoggedIn }) => {
 
     setIsLoading(true);
     try {
-      const res = await fetch('${API_URL}/api/auth/login', {
+      const res = await fetch('${API_URL}api/auth/login', {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
