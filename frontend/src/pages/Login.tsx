@@ -41,7 +41,7 @@ const Login: React.FC<LoginProps> = ({ setIsLoggedIn }) => {
       else setEmailError(data.message || "Email not found");
     } catch (err) {
       console.error(err);
-      setEmailError("Server error");
+      setEmailError(err);
     }
     setIsLoading(false);
   };
