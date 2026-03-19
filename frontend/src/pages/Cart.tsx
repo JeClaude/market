@@ -1,9 +1,10 @@
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import axios from 'axios';
 
 type CartItem = {
-  id: number;
+  id: string;
   name: string;
   price: number;
   quantity: number;
@@ -19,24 +20,65 @@ type CartProps = {
 };
 
 const Cart: React.FC<CartProps> = ({ isOpen, onClose, cartItems, setCartItems }) => {
+  const API_URL = "http://localhost:5000/api/cart";
+  const token = localStorage.getItem("token");
 
+  // --- Sync cart changes for logged-in users ---
+  useEffect(() => {
+    if (!token) return;
+    const syncCart = async () => {
+      try {
+        for (const item of cartItems) {
+          await axios.put(
+            `${API_URL}/${item.id}`,
+            { quantity: item.quantity },
+            { headers: { Authorization: `Bearer ${token}` } }
+          );
+        }
+      } catch (err) {
+        console.error("Error syncing cart with server:", err);
+      }
+    };
+    syncCart();
+  }, [cartItems, token]);
+
+  // --- Update quantity ---
+  const updateQuantity = (id: string, newQuantity: number) => {
+    if (newQuantity < 1) return;
+    setCartItems(items =>
+      items.map(item => (item.id === id ? { ...item, quantity: newQuantity } : item))
+    );
+
+    // Guest localStorage
+    if (!token) {
+      const updatedCart = cartItems.map(item =>
+        item.id === id ? { ...item, quantity: newQuantity } : item
+      );
+      localStorage.setItem("cart", JSON.stringify(updatedCart));
+    }
+  };
+
+  // --- Remove item ---
+  const removeItem = (id: string) => {
+    const updated = cartItems.filter(item => item.id !== id);
+    setCartItems(updated);
+
+    if (!token) localStorage.setItem("cart", JSON.stringify(updated));
+    else {
+      axios.delete(`${API_URL}/${id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      }).catch(err => console.error("Error deleting item from server cart:", err));
+    }
+  };
+
+  // --- Totals ---
   const subtotal = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
   const shipping = subtotal > 50000 ? 0 : 5000;
   const tax = subtotal * 0.18;
   const total = subtotal + shipping + tax;
 
-  const updateQuantity = (id: number, newQuantity: number) => {
-    if (newQuantity < 1) return;
-    setCartItems(items => items.map(item => item.id === id ? { ...item, quantity: newQuantity } : item));
-  };
-
-  const removeItem = (id: number) => {
-    setCartItems(items => items.filter(item => item.id !== id));
-  };
-
   return (
     <>
-      {/* Backdrop */}
       <AnimatePresence>
         {isOpen && (
           <motion.div
@@ -49,7 +91,6 @@ const Cart: React.FC<CartProps> = ({ isOpen, onClose, cartItems, setCartItems })
         )}
       </AnimatePresence>
 
-      {/* Sliding Cart */}
       <AnimatePresence>
         {isOpen && (
           <motion.div
@@ -59,8 +100,6 @@ const Cart: React.FC<CartProps> = ({ isOpen, onClose, cartItems, setCartItems })
             transition={{ type: 'spring', damping: 30, stiffness: 300 }}
             className="fixed top-0 right-0 h-full w-full md:w-96 bg-white shadow-2xl z-50 overflow-hidden flex flex-col"
           >
-
-            {/* Header */}
             <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-4">
               <div className="flex justify-between items-center">
                 <div className="flex items-center gap-2">
@@ -76,7 +115,6 @@ const Cart: React.FC<CartProps> = ({ isOpen, onClose, cartItems, setCartItems })
               <p className="text-sm opacity-90 mt-1">{cartItems.length} {cartItems.length === 1 ? 'item' : 'items'}</p>
             </div>
 
-            {/* Cart Items */}
             <div className="flex-1 overflow-y-auto p-4 space-y-4">
               {cartItems.length === 0 ? (
                 <div className="text-center py-12">
@@ -92,7 +130,7 @@ const Cart: React.FC<CartProps> = ({ isOpen, onClose, cartItems, setCartItems })
                   </Link>
                 </div>
               ) : (
-                cartItems.map((item) => (
+                cartItems.map(item => (
                   <motion.div
                     key={item.id}
                     initial={{ opacity: 0, y: 20 }}
@@ -103,30 +141,23 @@ const Cart: React.FC<CartProps> = ({ isOpen, onClose, cartItems, setCartItems })
                     <div className="w-20 h-20 bg-gray-200 rounded-lg overflow-hidden flex-shrink-0">
                       <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
                     </div>
-
                     <div className="flex-1">
                       <h3 className="font-semibold text-sm mb-1 line-clamp-2">{item.name}</h3>
                       <p className="text-xs text-gray-500 mb-2">{item.category}</p>
-
                       <div className="flex items-center justify-between">
                         <div className="flex items-center border border-gray-300 rounded-lg">
                           <button
                             onClick={() => updateQuantity(item.id, item.quantity - 1)}
                             className="px-2 py-1 hover:bg-gray-200 rounded-l-lg transition-colors"
-                          >
-                            -
-                          </button>
+                          >-</button>
                           <span className="px-3 py-1 text-sm font-medium">{item.quantity}</span>
                           <button
                             onClick={() => updateQuantity(item.id, item.quantity + 1)}
                             className="px-2 py-1 hover:bg-gray-200 rounded-r-lg transition-colors"
-                          >
-                            +
-                          </button>
+                          >+</button>
                         </div>
                         <span className="font-bold text-blue-600">{(item.price * item.quantity).toLocaleString()} RWF</span>
                       </div>
-
                       <button
                         onClick={() => removeItem(item.id)}
                         className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity text-red-500 hover:text-red-700"
@@ -141,7 +172,6 @@ const Cart: React.FC<CartProps> = ({ isOpen, onClose, cartItems, setCartItems })
               )}
             </div>
 
-            {/* Order Summary & Buttons */}
             {cartItems.length > 0 && (
               <div className="p-4 border-t border-gray-200 bg-gray-50">
                 <h3 className="font-semibold mb-3">Order Summary</h3>
@@ -165,25 +195,6 @@ const Cart: React.FC<CartProps> = ({ isOpen, onClose, cartItems, setCartItems })
                     </div>
                   </div>
                 </div>
-
-                {/* Free shipping progress */}
-                {subtotal < 50000 && (
-                  <div className="mt-3">
-                    <div className="flex justify-between text-xs text-gray-600 mb-1">
-                      <span>Add {Math.ceil((50000 - subtotal) / 1000)}k RWF for free shipping</span>
-                      <span>{Math.round((subtotal / 50000) * 100)}%</span>
-                    </div>
-                    <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
-                      <motion.div
-                        initial={{ width: 0 }}
-                        animate={{ width: `${(subtotal / 50000) * 100}%` }}
-                        className="h-full bg-gradient-to-r from-blue-500 to-purple-500"
-                      />
-                    </div>
-                  </div>
-                )}
-
-                {/* Checkout Button */}
                 <Link to="/checkout" onClick={onClose}>
                   <motion.button
                     whileHover={{ scale: 1.02 }}
@@ -193,8 +204,6 @@ const Cart: React.FC<CartProps> = ({ isOpen, onClose, cartItems, setCartItems })
                     Proceed to Checkout
                   </motion.button>
                 </Link>
-
-                {/* Continue Shopping */}
                 <button
                   onClick={onClose}
                   className="w-full mt-2 py-2 text-gray-600 hover:text-gray-800 text-sm transition-colors"

@@ -1,10 +1,11 @@
-import { Link, useParams } from 'react-router-dom';
+import { Link, useParams, useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 
-const API_URL = "http://localhost:5000";
+const API_URL = "https://market-9whr.vercel.app";
 
 const ProductDetail = () => {
   const { id } = useParams();
+  const navigate = useNavigate();
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -25,12 +26,29 @@ const ProductDetail = () => {
     fetchProduct();
   }, [id]);
 
+  // 🛒 Add to cart
+  const addToCart = (product) => {
+    const cart = JSON.parse(localStorage.getItem('cart')) || [];
+    const existing = cart.find((item) => item._id === product._id);
+
+    if (existing) {
+      existing.qty += quantity;
+    } else {
+      cart.push({ ...product, qty: quantity });
+    }
+
+    localStorage.setItem('cart', JSON.stringify(cart));
+    alert('Added to cart 🛒');
+  };
+
+  // Loading
   if (loading) return (
     <div className="min-h-screen flex items-center justify-center text-gray-500 text-sm">
       Loading product...
     </div>
   );
 
+  // Error / not found
   if (error || !product) return (
     <div className="min-h-screen flex items-center justify-center text-red-500 text-sm">
       {error || 'Product not found'}
@@ -52,12 +70,12 @@ const ProductDetail = () => {
           <div>
             <div className="aspect-square bg-gray-100 rounded-xl overflow-hidden mb-3">
               <img
-                src={product.image}
+                src={product.image || "https://via.placeholder.com/400"}
                 alt={product.name}
                 className="w-full h-full object-contain"
               />
             </div>
-            {/* Placeholder thumbnails using same image */}
+            {/* Thumbnails */}
             <div className="flex gap-2 overflow-x-auto pb-1">
               {[...Array(4)].map((_, i) => (
                 <div
@@ -96,21 +114,7 @@ const ProductDetail = () => {
               )}
             </div>
 
-            {/* Rating */}
-            <div className="flex items-center gap-2 mb-4">
-              <div className="flex text-gray-300 text-sm">
-                {[...Array(5)].map((_, i) => (
-                  <span key={i} className={i < Math.floor(product.rating || 0) ? 'text-yellow-400' : ''}>
-                    ★
-                  </span>
-                ))}
-              </div>
-              <span className="text-sm text-gray-500">
-                {product.rating || 0} · {product.reviews || 0} Reviews
-              </span>
-            </div>
-
-            {/* Quantity */}
+            {/* Quantity Selector */}
             <div className="flex items-center gap-3 mb-5">
               <button
                 onClick={() => setQuantity(q => Math.max(1, q - 1))}
@@ -125,17 +129,27 @@ const ProductDetail = () => {
               >
                 +
               </button>
-
-              {/* Add to Cart */}
-              <button className="flex-1 bg-orange-400 hover:bg-orange-500 text-white py-2 px-4 rounded-lg text-sm font-semibold transition-colors flex items-center justify-center gap-2">
-                🛒 Add to Cart
-              </button>
             </div>
 
-            {/* Buy Now */}
-            <button className="w-full bg-black hover:bg-gray-800 text-white py-3 rounded-lg text-sm font-semibold transition-colors mb-5">
-              Gura Nonaha
-            </button>
+            {/* Buttons */}
+            <div className="flex items-center gap-2 mb-5">
+              {/* Small Cart */}
+              <button
+                onClick={() => addToCart(product)}
+                className="w-9 h-9 flex items-center justify-center bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition"
+                title="Add to cart"
+              >
+                🛒
+              </button>
+
+              {/* Buy Now */}
+              <button
+                onClick={() => navigate(`/products/${product._id}`)}
+                className="flex-1 bg-orange-100 hover:bg-orange-200 text-orange-600 text-xs font-semibold py-2 rounded-lg transition"
+              >
+                Buy Now
+              </button>
+            </div>
 
             {/* Delivery & Returns */}
             <div className="space-y-3 border-t pt-4">
@@ -158,6 +172,7 @@ const ProductDetail = () => {
               </div>
             </div>
           </div>
+
         </div>
       </div>
     </div>

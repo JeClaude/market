@@ -44,7 +44,6 @@ const Navbar: React.FC<NavbarProps> = ({ openCart, isLoggedIn, setIsLoggedIn, ca
           <Link to="/" className="text-xl font-semibold text-gray-900">Ability Traders</Link>
           <div className="flex space-x-6 items-center">
             <Link to="/" className="text-gray-600 hover:text-blue-600">Home</Link>
-            <Link to="/categories" className="text-gray-600 hover:text-blue-600">Categories</Link>
             <Link to="/products" className="text-gray-600 hover:text-blue-600">Products</Link>
 
             <button onClick={openCart} className="relative p-2">

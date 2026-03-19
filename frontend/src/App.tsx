@@ -12,25 +12,48 @@ import Register from './pages/Register';
 import CategoryExplorer from './pages/CategoryExplorer';
 import ScrollToTop from './components/ScrollToTop';
 import ProtectedRoute from './components/ProtectedRoute';
+import axios from 'axios';
 
 function App() {
-  // ✅ State to control cart modal
   const [cartOpen, setCartOpen] = useState(false);
-
-  // ✅ Cart items shared state
-  const [cartItems, setCartItems] = useState([
-    { id: 1, name: 'A25 Portable Bluetooth Speaker', price: 12000, quantity: 2, image: 'https://images.unsplash.com/photo-1608043152269-423dbba4e7e1?w=200', category: 'Electronics' },
-    { id: 2, name: "Men's Graphic Wave T-Shirt", price: 14000, quantity: 1, image: 'https://images.unsplash.com/photo-1581655353564-df123a1eb820?w=200', category: 'Clothing' },
-    { id: 3, name: 'Wireless Headphones Pro', price: 45000, quantity: 1, image: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=200', category: 'Electronics' },
-  ]);
-
-  // ✅ Auth state reactive
+  const [cartItems, setCartItems] = useState<any[]>([]);
   const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem('token'));
+  const token = localStorage.getItem("token");
 
-  // ✅ Listen to storage changes (login/logout in another tab or component)
+  // --- Load cart on app start ---
+  useEffect(() => {
+    const loadCart = async () => {
+      if (token) {
+        try {
+          const res = await axios.get("http://localhost:5000/api/cart", {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          const serverCart = res.data.items.map((item: any) => ({
+            id: item.product._id,
+            name: item.product.name,
+            price: item.product.price,
+            quantity: item.quantity,
+            image: item.product.image,
+            category: item.product.category || "",
+          }));
+          setCartItems(serverCart);
+        } catch (err) {
+          console.error("Error loading server cart:", err);
+        }
+      } else {
+        const localCart = JSON.parse(localStorage.getItem("cart") || "[]");
+        setCartItems(localCart);
+      }
+    };
+    loadCart();
+  }, [isLoggedIn, token]);
+
+  // --- Listen to storage changes across tabs ---
   useEffect(() => {
     const handleStorageChange = () => {
       setIsLoggedIn(!!localStorage.getItem('token'));
+      const localCart = JSON.parse(localStorage.getItem("cart") || "[]");
+      if (!localStorage.getItem("token")) setCartItems(localCart);
     };
     window.addEventListener('storage', handleStorageChange);
     return () => window.removeEventListener('storage', handleStorageChange);
@@ -41,35 +64,30 @@ function App() {
       <ScrollToTop behavior="smooth" delay={100} offset={80} />
 
       <div className="min-h-screen flex flex-col">
-        {/* Navbar receives cart state */}
         <Navbar
           openCart={() => setCartOpen(true)}
           isLoggedIn={isLoggedIn}
           setIsLoggedIn={setIsLoggedIn}
-          cartItems={cartItems}          // ✅ pass cartItems
+          cartItems={cartItems}
         />
 
-        {/* Cart modal receives cart state & updater */}
         <Cart
           isOpen={cartOpen}
           onClose={() => setCartOpen(false)}
-          cartItems={cartItems}          // ✅ current cart
-          setCartItems={setCartItems}    // ✅ updater
+          cartItems={cartItems}
+          setCartItems={setCartItems}
         />
 
         <main className="flex-grow">
           <Routes>
             <Route path="/" element={<Home />} />
-            <Route path="/products" element={<Products />} />
-            <Route path="/product/:id" element={<ProductDetail />} />
-            <Route
-              path="/checkout"
-              element={
-                <ProtectedRoute>
-                  <Checkout />
-                </ProtectedRoute>
-              }
-            />
+            <Route path="/products" element={<Products cartItems={cartItems} setCartItems={setCartItems} />} />
+            <Route path="/product/:id" element={<ProductDetail cartItems={cartItems} setCartItems={setCartItems} />} />
+            <Route path="/checkout" element={
+              <ProtectedRoute>
+                <Checkout />
+              </ProtectedRoute>
+            } />
             <Route path="/login" element={<Login setIsLoggedIn={setIsLoggedIn} />} />
             <Route path="/register" element={<Register />} />
             <Route path="/categories" element={<CategoryExplorer />} />
