@@ -1,6 +1,7 @@
 const express = require("express");
 const os = require("os");
 require("dotenv").config();
+const cors = require("cors");
 
 const connectDB = require("./config/db");
 const userRoutes = require("./routes/userRoutes");
@@ -15,6 +16,11 @@ connectDB();
 /*
 MIDDLEWARE
 */
+app.use(cors({
+  origin: "https://market-kappa-ivory.vercel.app",
+  methods: ["GET", "POST", "PUT", "DELETE"],
+  credentials: true
+}));
 app.use(express.json());
 
 /*
