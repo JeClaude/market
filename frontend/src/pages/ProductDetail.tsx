@@ -1,7 +1,7 @@
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
+import API_URL from "../config";
 
-const API_URL = "https://market-9whr.vercel.app";
 
 const ProductDetail = () => {
   const { id } = useParams();
@@ -14,7 +14,7 @@ const ProductDetail = () => {
   useEffect(() => {
     const fetchProduct = async () => {
       try {
-        const res = await fetch(`${API_URL}/api/products/${id}`);
+        const res = await fetch(`${API_URL}api/products/${id}`);
         if (!res.ok) throw new Error('Product not found');
         const data = await res.json();
         setProduct(data);

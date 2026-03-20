@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
-const API_URL = "https://market-9whr.vercel.app/api/cart";
+
+const API_URL = "http://localhost:5000/api/cart";
 
 const Checkout = () => {
   const [cartItems, setCartItems] = useState<any[]>([]);

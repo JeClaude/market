@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
+import API_URL from "../config";
 
 type ProductType = {
   _id: string;
@@ -26,7 +27,7 @@ const Products: React.FC<ProductsProps> = ({ cartItems, setCartItems }) => {
   useEffect(() => {
     const getProducts = async () => {
       try {
-        const res = await axios.get("https://market-9whr.vercel.app/api/products");
+        const res = await axios.get(`${API_URL}api/products`);
         setProducts(res.data);
       } catch (err) {
         console.error(err);
@@ -40,7 +41,7 @@ const Products: React.FC<ProductsProps> = ({ cartItems, setCartItems }) => {
   const addToCart = async (product: ProductType) => {
     if (token) {
       try {
-        const res = await axios.post("https://market-9whr.vercel.app/api/cart", {
+        const res = await axios.post(`${API_URL}api/cart`, {
           productId: product._id,
           quantity: 1
         }, { headers: { Authorization: `Bearer ${token}` } });
