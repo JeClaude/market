@@ -68,10 +68,18 @@ const Login: React.FC<LoginProps> = ({ setIsLoggedIn }) => {
         localStorage.setItem("token", data.token);
         localStorage.setItem("user", JSON.stringify(data.user));
 
+        // 👑 store role separately for easy access
+        localStorage.setItem("role", data.user.role);
+
         // Update navbar immediately
         setIsLoggedIn(true);
 
-        navigate(from, { replace: true });
+        // 🚀 optional role-based redirect (recommended)
+        if (data.user.role === "admin") {
+          navigate("/admin", { replace: true });
+        } else {
+          navigate(from, { replace: true });
+        }
       } else {
         setPasswordError(data.message || "Incorrect password");
       }

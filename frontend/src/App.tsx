@@ -13,6 +13,8 @@ import CategoryExplorer from './pages/CategoryExplorer';
 import ScrollToTop from './components/ScrollToTop';
 import ProtectedRoute from './components/ProtectedRoute';
 import axios from 'axios';
+import Admin from './pages/Admin';
+import AdminRoute from './components/AdminRoute';
 
 function App() {
   const [cartOpen, setCartOpen] = useState(false);
@@ -91,6 +93,14 @@ function App() {
             <Route path="/login" element={<Login setIsLoggedIn={setIsLoggedIn} />} />
             <Route path="/register" element={<Register />} />
             <Route path="/categories" element={<CategoryExplorer />} />
+            <Route
+              path="/admin"
+              element={
+                  <AdminRoute>
+                    <Admin />
+                  </AdminRoute>
+                }
+              />
           </Routes>
         </main>
 

@@ -1,12 +1,14 @@
 const express = require("express");
 const cors = require("cors");
 const os = require("os");
+const path = require("path");  // ← ADD THIS LINE
 require("dotenv").config();
 
 const connectDB = require("./config/db");
 const userRoutes = require("./routes/userRoutes");
 const productRoutes = require("./routes/productRoutes");
 const cartRoutes = require("./routes/cartRoute");
+const categoryRoutes = require("./routes/categoryRoutes");
 
 const app = express();
 
@@ -18,6 +20,7 @@ MIDDLEWARE
 */
 app.use(cors());
 app.use(express.json());
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));  // ← MOVE HERE (better position)
 
 /*
 ROUTES
@@ -25,11 +28,11 @@ ROUTES
 app.use("/api/auth", userRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/cart", cartRoutes);
+app.use("/api/categories", categoryRoutes);
 
 module.exports = app;
 
 // When run directly (e.g., `node server.js`), start the HTTP server.
-// This keeps the app export usable for serverless platforms (e.g., Vercel).
 if (require.main === module) {
   const PORT = process.env.PORT || 5000;
 

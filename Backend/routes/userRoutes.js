@@ -32,6 +32,7 @@ router.post("/register", async (req, res) => {
       phone,
       email,
       password: hashedPassword
+      // role is NOT added here → handled by schema default
     });
 
     await newUser.save();
@@ -43,7 +44,8 @@ router.post("/register", async (req, res) => {
         firstname: newUser.firstname,
         lastname: newUser.lastname,
         phone: newUser.phone,
-        email: newUser.email
+        email: newUser.email,
+        role: newUser.role // 👈 added
       }
     });
 
@@ -107,7 +109,8 @@ router.post("/login", async (req, res) => {
     const token = jwt.sign(
       {
         id: user._id,
-        email: user.email
+        email: user.email,
+        role: user.role // 👈 added
       },
       process.env.JWT_SECRET,
       { expiresIn: "7d" }
@@ -121,7 +124,8 @@ router.post("/login", async (req, res) => {
         firstname: user.firstname,
         lastname: user.lastname,
         phone: user.phone,
-        email: user.email
+        email: user.email,
+        role: user.role // 👈 added
       }
     });
 
