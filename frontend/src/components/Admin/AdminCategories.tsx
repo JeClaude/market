@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
-import { Link, useLocation } from "react-router-dom";
 
 const API_URL = "http://localhost:5000";
 
@@ -10,6 +9,7 @@ type Category = {
   name: string;
   subcategories: string[];
   brands: string[];
+  specifications: Record<string, string[]>;
   isActive: boolean;
   order: number;
   createdAt: string;
@@ -26,10 +26,34 @@ const AdminCategories = () => {
   const [formData, setFormData] = useState({
     key: "",
     name: "",
-    subcategories: "",
-    brands: "",
     order: 0
   });
+  
+  // Subcategories state
+  const [subcategories, setSubcategories] = useState<string[]>([]);
+  const [newSubcategory, setNewSubcategory] = useState("");
+  const [editingSubcategoryIndex, setEditingSubcategoryIndex] = useState<number | null>(null);
+  const [editingSubcategoryText, setEditingSubcategoryText] = useState("");
+
+  // Brands state
+  const [brands, setBrands] = useState<string[]>([]);
+  const [newBrand, setNewBrand] = useState("");
+  const [editingBrandIndex, setEditingBrandIndex] = useState<number | null>(null);
+  const [editingBrandText, setEditingBrandText] = useState("");
+  
+  // Specifications state
+  const [specifications, setSpecifications] = useState<Record<string, string[]>>({});
+  const [newSpecKey, setNewSpecKey] = useState("");
+  const [newSpecValue, setNewSpecValue] = useState("");
+  const [newSpecValuesList, setNewSpecValuesList] = useState<string[]>([]);
+  
+  // Edit value states for each specification
+  const [editingSpecKey, setEditingSpecKey] = useState<string | null>(null);
+  const [editingValueIndex, setEditingValueIndex] = useState<number | null>(null);
+  const [editingValueText, setEditingValueText] = useState("");
+  
+  // Store input values for each specification's "Add new value" field
+  const [specInputValues, setSpecInputValues] = useState<Record<string, string>>({});
 
   const token = localStorage.getItem("token");
 
@@ -53,12 +77,177 @@ const AdminCategories = () => {
   }, []);
 
   // Handle form input change
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData({
       ...formData,
       [name]: value
     });
+  };
+
+  // ==================== SUBCATEGORIES CRUD ====================
+  const addSubcategory = () => {
+    if (newSubcategory.trim() && !subcategories.includes(newSubcategory.trim())) {
+      setSubcategories([...subcategories, newSubcategory.trim()]);
+      setNewSubcategory("");
+    }
+  };
+
+  const removeSubcategory = (index: number) => {
+    setSubcategories(subcategories.filter((_, i) => i !== index));
+  };
+
+  const startEditingSubcategory = (index: number, value: string) => {
+    setEditingSubcategoryIndex(index);
+    setEditingSubcategoryText(value);
+  };
+
+  const updateSubcategory = () => {
+    if (editingSubcategoryIndex !== null && editingSubcategoryText.trim()) {
+      const updated = [...subcategories];
+      updated[editingSubcategoryIndex] = editingSubcategoryText.trim();
+      setSubcategories(updated);
+      cancelEditingSubcategory();
+    }
+  };
+
+  const cancelEditingSubcategory = () => {
+    setEditingSubcategoryIndex(null);
+    setEditingSubcategoryText("");
+  };
+
+  // ==================== BRANDS CRUD ====================
+  const addBrand = () => {
+    if (newBrand.trim() && !brands.includes(newBrand.trim())) {
+      setBrands([...brands, newBrand.trim()]);
+      setNewBrand("");
+    }
+  };
+
+  const removeBrand = (index: number) => {
+    setBrands(brands.filter((_, i) => i !== index));
+  };
+
+  const startEditingBrand = (index: number, value: string) => {
+    setEditingBrandIndex(index);
+    setEditingBrandText(value);
+  };
+
+  const updateBrand = () => {
+    if (editingBrandIndex !== null && editingBrandText.trim()) {
+      const updated = [...brands];
+      updated[editingBrandIndex] = editingBrandText.trim();
+      setBrands(updated);
+      cancelEditingBrand();
+    }
+  };
+
+  const cancelEditingBrand = () => {
+    setEditingBrandIndex(null);
+    setEditingBrandText("");
+  };
+
+  // ==================== SPECIFICATIONS CRUD ====================
+  const updateSpecInputValue = (specKey: string, value: string) => {
+    setSpecInputValues({
+      ...specInputValues,
+      [specKey]: value
+    });
+  };
+
+  const clearSpecInputValue = (specKey: string) => {
+    setSpecInputValues({
+      ...specInputValues,
+      [specKey]: ""
+    });
+  };
+
+  // Add value to new specification list
+  const addValueToList = () => {
+    if (newSpecValue.trim()) {
+      if (!newSpecValuesList.includes(newSpecValue.trim())) {
+        setNewSpecValuesList([...newSpecValuesList, newSpecValue.trim()]);
+      }
+      setNewSpecValue("");
+    }
+  };
+
+  // Remove value from new specification list
+  const removeValueFromList = (index: number) => {
+    setNewSpecValuesList(newSpecValuesList.filter((_, i) => i !== index));
+  };
+
+  // Add specification
+  const addSpecification = () => {
+    if (newSpecKey.trim() && newSpecValuesList.length > 0) {
+      setSpecifications({
+        ...specifications,
+        [newSpecKey.trim()]: newSpecValuesList
+      });
+      setNewSpecKey("");
+      setNewSpecValuesList([]);
+    }
+  };
+
+  // Remove specification
+  const removeSpecification = (key: string) => {
+    const newSpecs = { ...specifications };
+    delete newSpecs[key];
+    setSpecifications(newSpecs);
+    // Also clean up input value for this spec
+    const newInputValues = { ...specInputValues };
+    delete newInputValues[key];
+    setSpecInputValues(newInputValues);
+  };
+
+  // Add value to existing specification
+  const addValueToSpec = (specKey: string, value: string) => {
+    if (value.trim()) {
+      const currentValues = specifications[specKey] || [];
+      if (!currentValues.includes(value.trim())) {
+        setSpecifications({
+          ...specifications,
+          [specKey]: [...currentValues, value.trim()]
+        });
+      }
+    }
+  };
+
+  // Remove value from existing specification
+  const removeValueFromSpec = (specKey: string, valueIndex: number) => {
+    const currentValues = [...(specifications[specKey] || [])];
+    currentValues.splice(valueIndex, 1);
+    setSpecifications({
+      ...specifications,
+      [specKey]: currentValues
+    });
+  };
+
+  // Start editing a value
+  const startEditingValue = (specKey: string, valueIndex: number, currentValue: string) => {
+    setEditingSpecKey(specKey);
+    setEditingValueIndex(valueIndex);
+    setEditingValueText(currentValue);
+  };
+
+  // Cancel editing
+  const cancelEditing = () => {
+    setEditingSpecKey(null);
+    setEditingValueIndex(null);
+    setEditingValueText("");
+  };
+
+  // Update existing value
+  const updateValue = () => {
+    if (editingSpecKey !== null && editingValueIndex !== null && editingValueText.trim()) {
+      const currentValues = [...(specifications[editingSpecKey] || [])];
+      currentValues[editingValueIndex] = editingValueText.trim();
+      setSpecifications({
+        ...specifications,
+        [editingSpecKey]: currentValues
+      });
+      cancelEditing();
+    }
   };
 
   // Open create modal
@@ -67,10 +256,20 @@ const AdminCategories = () => {
     setFormData({
       key: "",
       name: "",
-      subcategories: "",
-      brands: "",
       order: categories.length
     });
+    setSubcategories([]);
+    setBrands([]);
+    setSpecifications({});
+    setSpecInputValues({});
+    setNewSubcategory("");
+    setNewBrand("");
+    setNewSpecKey("");
+    setNewSpecValue("");
+    setNewSpecValuesList([]);
+    cancelEditingSubcategory();
+    cancelEditingBrand();
+    cancelEditing();
     setIsModalOpen(true);
   };
 
@@ -80,31 +279,40 @@ const AdminCategories = () => {
     setFormData({
       key: category.key,
       name: category.name,
-      subcategories: category.subcategories.join(", "),
-      brands: category.brands.join(", "),
       order: category.order
     });
+    setSubcategories(category.subcategories || []);
+    setBrands(category.brands || []);
+    setSpecifications(category.specifications || {});
+    setSpecInputValues({});
+    setNewSubcategory("");
+    setNewBrand("");
+    setNewSpecKey("");
+    setNewSpecValue("");
+    setNewSpecValuesList([]);
+    cancelEditingSubcategory();
+    cancelEditingBrand();
+    cancelEditing();
     setIsModalOpen(true);
   };
 
-  // Save category (create or update)
+  // Save category
   const handleSave = async () => {
     try {
       const categoryData = {
         key: formData.key.toLowerCase().replace(/\s+/g, "-"),
         name: formData.name,
-        subcategories: formData.subcategories.split(",").map(s => s.trim()).filter(s => s),
-        brands: formData.brands.split(",").map(b => b.trim()).filter(b => b),
+        subcategories: subcategories,
+        brands: brands,
+        specifications: specifications,
         order: formData.order
       };
 
       if (editingCategory) {
-        // Update
         await axios.put(`${API_URL}/api/categories/${editingCategory._id}`, categoryData, {
           headers: { Authorization: `Bearer ${token}` }
         });
       } else {
-        // Create
         await axios.post(`${API_URL}/api/categories`, categoryData, {
           headers: { Authorization: `Bearer ${token}` }
         });
@@ -143,7 +351,7 @@ const AdminCategories = () => {
               <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">
                 Category Management
               </h1>
-              <p className="text-gray-600 mt-1">Manage product categories, subcategories, and brands</p>
+              <p className="text-gray-600 mt-1">Manage product categories, subcategories, brands, and specifications</p>
             </div>
             <button
               onClick={openCreateModal}
@@ -210,8 +418,8 @@ const AdminCategories = () => {
                       <h3 className="text-sm font-semibold text-gray-700 mb-2">Subcategories:</h3>
                       <div className="flex flex-wrap gap-2">
                         {category.subcategories.length > 0 ? (
-                          category.subcategories.map((sub) => (
-                            <span key={sub} className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded">
+                          category.subcategories.map((sub, idx) => (
+                            <span key={idx} className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-full">
                               {sub}
                             </span>
                           ))
@@ -222,12 +430,12 @@ const AdminCategories = () => {
                     </div>
 
                     {/* Brands */}
-                    <div>
+                    <div className="mb-4">
                       <h3 className="text-sm font-semibold text-gray-700 mb-2">Brands:</h3>
                       <div className="flex flex-wrap gap-2">
                         {category.brands.length > 0 ? (
-                          category.brands.map((brand) => (
-                            <span key={brand} className="text-xs bg-blue-50 text-blue-600 px-2 py-1 rounded">
+                          category.brands.map((brand, idx) => (
+                            <span key={idx} className="text-xs bg-blue-50 text-blue-600 px-2 py-1 rounded-full">
                               {brand}
                             </span>
                           ))
@@ -236,6 +444,27 @@ const AdminCategories = () => {
                         )}
                       </div>
                     </div>
+
+                    {/* Specifications */}
+                    {category.specifications && Object.keys(category.specifications).length > 0 && (
+                      <div className="mb-4">
+                        <h3 className="text-sm font-semibold text-gray-700 mb-2">Specifications:</h3>
+                        <div className="space-y-2">
+                          {Object.entries(category.specifications).map(([specKey, specValues]) => (
+                            <div key={specKey} className="bg-gray-50 rounded-lg p-2">
+                              <p className="text-xs font-semibold text-gray-700 capitalize mb-1">{specKey}:</p>
+                              <div className="flex flex-wrap gap-1">
+                                {specValues.map((value, idx) => (
+                                  <span key={idx} className="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full">
+                                    {value}
+                                  </span>
+                                ))}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
 
                     <div className="mt-4 pt-4 border-t border-gray-100 text-xs text-gray-400">
                       Order: {category.order}
@@ -248,65 +477,205 @@ const AdminCategories = () => {
         </div>
       </div>
 
-      {/* Create/Edit Modal */}
+      {/* Create/Edit Modal with Tags for Subcategories, Brands, and Specifications */}
       {isModalOpen && (
-        <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 flex items-center justify-center z-50 p-4 overflow-y-auto">
           <div className="absolute inset-0 bg-black/40 backdrop-blur-md" onClick={() => setIsModalOpen(false)} />
-          <div className="relative w-full max-w-2xl bg-white rounded-2xl shadow-2xl transform transition-all overflow-hidden">
-            <div className="px-6 pt-5 pb-3 border-b border-gray-200">
+          <div className="relative w-full max-w-4xl bg-white rounded-2xl shadow-2xl transform transition-all overflow-hidden max-h-[90vh] overflow-y-auto">
+            <div className="sticky top-0 bg-white px-6 pt-5 pb-3 border-b border-gray-200">
               <h2 className="text-xl font-bold text-gray-800">
                 {editingCategory ? "Edit Category" : "Add New Category"}
               </h2>
             </div>
 
             <div className="px-6 py-4 space-y-4">
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1">Category Key *</label>
-                <input
-                  name="key"
-                  value={formData.key}
-                  onChange={handleChange}
-                  placeholder="e.g., computers-laptops"
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500"
-                />
-                <p className="text-xs text-gray-400 mt-1">Unique identifier (lowercase, use hyphens)</p>
+              {/* Basic Info */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1">Category Key *</label>
+                  <input
+                    name="key"
+                    value={formData.key}
+                    onChange={handleChange}
+                    placeholder="e.g., computers-laptops"
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500"
+                  />
+                  <p className="text-xs text-gray-400 mt-1">Unique identifier (lowercase, use hyphens)</p>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1">Category Name *</label>
+                  <input
+                    name="name"
+                    value={formData.name}
+                    onChange={handleChange}
+                    placeholder="e.g., Computers & Laptops"
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
               </div>
 
+              {/* ==================== SUBCATEGORIES SECTION ==================== */}
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1">Category Name *</label>
-                <input
-                  name="name"
-                  value={formData.name}
-                  onChange={handleChange}
-                  placeholder="e.g., Computers & Laptops"
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500"
-                />
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Subcategories</label>
+                <div className="bg-gray-50 p-3 rounded-lg">
+                  <div className="flex flex-wrap gap-2 mb-2">
+                    {subcategories.map((sub, idx) => (
+                      <span
+                        key={idx}
+                        onClick={() => startEditingSubcategory(idx, sub)}
+                        className="cursor-pointer bg-gray-200 text-gray-700 px-3 py-1 rounded-full text-sm flex items-center gap-1 hover:bg-gray-300 transition-colors"
+                      >
+                        {sub}
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            removeSubcategory(idx);
+                          }}
+                          className="text-gray-500 hover:text-red-500 ml-1"
+                        >
+                          ×
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      placeholder={editingSubcategoryIndex !== null ? "Edit subcategory..." : "Add new subcategory..."}
+                      value={editingSubcategoryIndex !== null ? editingSubcategoryText : newSubcategory}
+                      onChange={(e) => {
+                        if (editingSubcategoryIndex !== null) {
+                          setEditingSubcategoryText(e.target.value);
+                        } else {
+                          setNewSubcategory(e.target.value);
+                        }
+                      }}
+                      onKeyPress={(e) => {
+                        if (e.key === 'Enter' && editingSubcategoryIndex === null) {
+                          addSubcategory();
+                        }
+                      }}
+                      className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
+                    />
+                    {editingSubcategoryIndex !== null ? (
+                      <>
+                        <button
+                          onClick={updateSubcategory}
+                          disabled={!editingSubcategoryText.trim()}
+                          className={`px-5 py-2 rounded-lg text-sm ${
+                            !editingSubcategoryText.trim()
+                              ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                              : "bg-green-500 text-white hover:bg-green-600"
+                          }`}
+                        >
+                          Update
+                        </button>
+                        <button
+                          onClick={cancelEditingSubcategory}
+                          className="px-5 py-2 rounded-lg text-sm bg-gray-300 text-gray-700 hover:bg-gray-400"
+                        >
+                          Cancel
+                        </button>
+                      </>
+                    ) : (
+                      <button
+                        onClick={addSubcategory}
+                        disabled={!newSubcategory.trim()}
+                        className={`px-5 py-2 rounded-lg text-sm ${
+                          !newSubcategory.trim()
+                            ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                            : "bg-blue-500 text-white hover:bg-blue-600"
+                        }`}
+                      >
+                        Add
+                      </button>
+                    )}
+                  </div>
+                </div>
               </div>
 
+              {/* ==================== BRANDS SECTION ==================== */}
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1">Subcategories</label>
-                <textarea
-                  name="subcategories"
-                  value={formData.subcategories}
-                  onChange={handleChange}
-                  placeholder="Enter subcategories separated by commas&#10;e.g., laptops, desktops, tablets"
-                  rows={3}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500"
-                />
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Brands</label>
+                <div className="bg-gray-50 p-3 rounded-lg">
+                  <div className="flex flex-wrap gap-2 mb-2">
+                    {brands.map((brand, idx) => (
+                      <span
+                        key={idx}
+                        onClick={() => startEditingBrand(idx, brand)}
+                        className="cursor-pointer bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm flex items-center gap-1 hover:bg-blue-200 transition-colors"
+                      >
+                        {brand}
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            removeBrand(idx);
+                          }}
+                          className="text-blue-500 hover:text-red-500 ml-1"
+                        >
+                          ×
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      placeholder={editingBrandIndex !== null ? "Edit brand..." : "Add new brand..."}
+                      value={editingBrandIndex !== null ? editingBrandText : newBrand}
+                      onChange={(e) => {
+                        if (editingBrandIndex !== null) {
+                          setEditingBrandText(e.target.value);
+                        } else {
+                          setNewBrand(e.target.value);
+                        }
+                      }}
+                      onKeyPress={(e) => {
+                        if (e.key === 'Enter' && editingBrandIndex === null) {
+                          addBrand();
+                        }
+                      }}
+                      className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
+                    />
+                    {editingBrandIndex !== null ? (
+                      <>
+                        <button
+                          onClick={updateBrand}
+                          disabled={!editingBrandText.trim()}
+                          className={`px-5 py-2 rounded-lg text-sm ${
+                            !editingBrandText.trim()
+                              ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                              : "bg-green-500 text-white hover:bg-green-600"
+                          }`}
+                        >
+                          Update
+                        </button>
+                        <button
+                          onClick={cancelEditingBrand}
+                          className="px-5 py-2 rounded-lg text-sm bg-gray-300 text-gray-700 hover:bg-gray-400"
+                        >
+                          Cancel
+                        </button>
+                      </>
+                    ) : (
+                      <button
+                        onClick={addBrand}
+                        disabled={!newBrand.trim()}
+                        className={`px-5 py-2 rounded-lg text-sm ${
+                          !newBrand.trim()
+                            ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                            : "bg-blue-500 text-white hover:bg-blue-600"
+                        }`}
+                      >
+                        Add
+                      </button>
+                    )}
+                  </div>
+                </div>
               </div>
 
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1">Brands</label>
-                <textarea
-                  name="brands"
-                  value={formData.brands}
-                  onChange={handleChange}
-                  placeholder="Enter brands separated by commas&#10;e.g., HP, Dell, Apple, Lenovo"
-                  rows={3}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-
+              {/* Display Order */}
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-1">Display Order</label>
                 <input
@@ -317,9 +686,180 @@ const AdminCategories = () => {
                   className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500"
                 />
               </div>
+
+              {/* ==================== SPECIFICATIONS SECTION ==================== */}
+              <div className="border-t border-gray-200 pt-4">
+                <h3 className="text-lg font-semibold text-gray-800 mb-3">Specifications</h3>
+
+                {/* Existing Specifications */}
+                {Object.keys(specifications).length > 0 && (
+                  <div className="mb-4 space-y-3">
+                    {Object.entries(specifications).map(([specKey, specValues]) => (
+                      <div key={specKey} className="bg-gray-50 p-3 rounded-lg">
+                        <div className="flex justify-between items-center mb-2">
+                          <span className="text-sm font-semibold text-gray-700 capitalize">{specKey}</span>
+                          <button
+                            onClick={() => removeSpecification(specKey)}
+                            className="text-red-500 hover:text-red-700 text-sm"
+                          >
+                            Remove
+                          </button>
+                        </div>
+                        
+                        {/* Values as clickable tags for editing */}
+                        <div className="flex flex-wrap gap-2 mb-2">
+                          {specValues.map((value, idx) => (
+                            <span
+                              key={idx}
+                              onClick={() => startEditingValue(specKey, idx, value)}
+                              className="cursor-pointer bg-purple-100 text-purple-700 px-3 py-1 rounded-full text-sm flex items-center gap-1 hover:bg-purple-200 transition-colors"
+                            >
+                              {value}
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  removeValueFromSpec(specKey, idx);
+                                }}
+                                className="text-purple-500 hover:text-purple-700 ml-1"
+                              >
+                                ×
+                              </button>
+                            </span>
+                          ))}
+                        </div>
+                        
+                        {/* Add/Edit input field */}
+                        <div className="flex gap-2">
+                          <input
+                            type="text"
+                            placeholder={editingSpecKey === specKey ? "Edit value..." : "Add new value..."}
+                            value={editingSpecKey === specKey ? editingValueText : (specInputValues[specKey] || "")}
+                            onChange={(e) => {
+                              if (editingSpecKey === specKey) {
+                                setEditingValueText(e.target.value);
+                              } else {
+                                updateSpecInputValue(specKey, e.target.value);
+                              }
+                            }}
+                            className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
+                          />
+                          {editingSpecKey === specKey ? (
+                            <>
+                              <button
+                                onClick={updateValue}
+                                disabled={!editingValueText.trim()}
+                                className={`px-5 py-2 rounded-lg text-sm ${
+                                  !editingValueText.trim()
+                                    ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                                    : "bg-green-500 text-white hover:bg-green-600"
+                                }`}
+                              >
+                                Update
+                              </button>
+                              <button
+                                onClick={cancelEditing}
+                                className="px-5 py-2 rounded-lg text-sm bg-gray-300 text-gray-700 hover:bg-gray-400"
+                              >
+                                Cancel
+                              </button>
+                            </>
+                          ) : (
+                            <button
+                              onClick={() => {
+                                const inputValue = specInputValues[specKey] || "";
+                                if (inputValue.trim()) {
+                                  addValueToSpec(specKey, inputValue);
+                                  clearSpecInputValue(specKey);
+                                }
+                              }}
+                              disabled={!(specInputValues[specKey] || "").trim()}
+                              className={`px-5 py-2 rounded-lg text-sm ${
+                                !(specInputValues[specKey] || "").trim()
+                                  ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                                  : "bg-blue-500 text-white hover:bg-blue-600"
+                              }`}
+                            >
+                              Add
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Add New Specification */}
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <h4 className="text-sm font-semibold text-gray-700 mb-3">Add New Specification</h4>
+                  <div className="mb-3">
+                    <input
+                      type="text"
+                      placeholder="Specification name (e.g., processor, ram, storage)"
+                      value={newSpecKey}
+                      onChange={(e) => setNewSpecKey(e.target.value)}
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                  
+                  {/* Values as Tags */}
+                  <div className="mb-3">
+                    <label className="text-xs text-gray-500 mb-1 block">Values (click Add after each value)</label>
+                    <div className="flex flex-wrap gap-2 mb-2">
+                      {newSpecValuesList.map((value, idx) => (
+                        <span key={idx} className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm flex items-center gap-1">
+                          {value}
+                          <button
+                            onClick={() => removeValueFromList(idx)}
+                            className="text-green-500 hover:text-green-700 ml-1"
+                          >
+                            ×
+                          </button>
+                        </span>
+                      ))}
+                    </div>
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        placeholder="Type a value..."
+                        value={newSpecValue}
+                        onChange={(e) => setNewSpecValue(e.target.value)}
+                        onKeyPress={(e) => {
+                          if (e.key === 'Enter') {
+                            addValueToList();
+                          }
+                        }}
+                        className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
+                      />
+                      <button
+                        onClick={addValueToList}
+                        disabled={!newSpecValue.trim()}
+                        className={`px-5 py-2 rounded-lg text-sm ${
+                          !newSpecValue.trim()
+                            ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                            : "bg-blue-500 text-white hover:bg-blue-600"
+                        }`}
+                      >
+                        Add Value
+                      </button>
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={addSpecification}
+                    disabled={!newSpecKey.trim() || newSpecValuesList.length === 0}
+                    className={`w-full text-sm px-4 py-2 rounded-lg mt-2 ${
+                      !newSpecKey.trim() || newSpecValuesList.length === 0
+                        ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                        : "bg-green-500 text-white hover:bg-green-600"
+                    }`}
+                  >
+                    + Add Specification
+                  </button>
+                </div>
+              </div>
             </div>
 
-            <div className="px-6 py-4 bg-gray-50 border-t border-gray-200 flex gap-3">
+            <div className="sticky bottom-0 bg-gray-50 border-t border-gray-200 px-6 py-4 flex gap-3">
               <button
                 onClick={handleSave}
                 disabled={!formData.key || !formData.name}

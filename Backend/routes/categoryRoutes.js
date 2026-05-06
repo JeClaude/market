@@ -59,7 +59,7 @@ CREATE NEW CATEGORY
 */
 router.post("/", async (req, res) => {
   try {
-    const { key, name, subcategories, brands, icon, order } = req.body;
+    const { key, name, subcategories, brands, specifications, icon, order } = req.body;
     
     // Validate required fields
     if (!key || !name) {
@@ -81,6 +81,7 @@ router.post("/", async (req, res) => {
       name,
       subcategories: subcategories || [],
       brands: brands || [],
+      specifications: specifications || {},
       icon: icon || "",
       order: order || 0
     });
@@ -100,7 +101,7 @@ UPDATE CATEGORY
 */
 router.put("/:id", async (req, res) => {
   try {
-    const { key, name, subcategories, brands, icon, isActive, order } = req.body;
+    const { key, name, subcategories, brands, specifications, icon, isActive, order } = req.body;
     
     const category = await Category.findById(req.params.id);
     if (!category) {
@@ -111,6 +112,7 @@ router.put("/:id", async (req, res) => {
     if (name !== undefined) category.name = name;
     if (subcategories !== undefined) category.subcategories = subcategories;
     if (brands !== undefined) category.brands = brands;
+    if (specifications !== undefined) category.specifications = specifications;
     if (icon !== undefined) category.icon = icon;
     if (isActive !== undefined) category.isActive = isActive;
     if (order !== undefined) category.order = order;
@@ -138,6 +140,30 @@ router.delete("/:id", async (req, res) => {
     res.status(200).json({
       success: true,
       message: "Category deleted successfully"
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+/*
+UPDATE CATEGORY SPECIFICATIONS ONLY
+*/
+router.patch("/:id/specifications", async (req, res) => {
+  try {
+    const { specifications } = req.body;
+    
+    const category = await Category.findById(req.params.id);
+    if (!category) {
+      return res.status(404).json({ message: "Category not found" });
+    }
+    
+    category.specifications = specifications;
+    await category.save();
+    
+    res.status(200).json({
+      success: true,
+      category
     });
   } catch (error) {
     res.status(500).json({ error: error.message });

@@ -20,6 +20,11 @@ const categorySchema = new mongoose.Schema({
     type: String,
     trim: true
   }],
+  specifications: {
+    type: Map,
+    of: [String],
+    default: {}
+  },
   icon: {
     type: String,
     default: ""
