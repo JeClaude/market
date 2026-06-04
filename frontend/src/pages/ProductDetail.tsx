@@ -1,12 +1,18 @@
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
+import axios from 'axios';
 import API_URL from "../config";
 
 
-const ProductDetail = () => {
+type ProductDetailProps = {
+  cartItems: any[];
+  setCartItems: React.Dispatch<React.SetStateAction<any[]>>;
+};
+
+const ProductDetail: React.FC<ProductDetailProps> = ({ cartItems, setCartItems }) => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [product, setProduct] = useState(null);
+  const [product, setProduct] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [quantity, setQuantity] = useState(1);
@@ -14,10 +20,8 @@ const ProductDetail = () => {
   useEffect(() => {
     const fetchProduct = async () => {
       try {
-        const res = await fetch(`${API_URL}api/products/${id}`);
-        if (!res.ok) throw new Error('Product not found');
-        const data = await res.json();
-        setProduct(data);
+        const res = await axios.get(`${API_URL}/api/products/${id}`);
+        setProduct(res.data);
       } catch (err) {
         setError('Failed to load product');
       }
@@ -27,17 +31,59 @@ const ProductDetail = () => {
   }, [id]);
 
   // 🛒 Add to cart
-  const addToCart = (product) => {
-    const cart = JSON.parse(localStorage.getItem('cart')) || [];
-    const existing = cart.find((item) => item._id === product._id);
+  const addToCart = async (product: any) => {
+    const token = localStorage.getItem('token');
 
-    if (existing) {
-      existing.qty += quantity;
-    } else {
-      cart.push({ ...product, qty: quantity });
+    if (token) {
+      try {
+        const res = await axios.post(
+          `${API_URL}/api/cart`,
+          { productId: product._id, quantity },
+          { headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" } }
+        );
+
+        const serverCart = res.data.items.map((item: any) => ({
+          id: item.product._id,
+          name: item.product.name,
+          price: item.product.price,
+          quantity: item.quantity,
+          image: item.product.image,
+          category: item.product.category || "",
+        }));
+
+        setCartItems(serverCart);
+        localStorage.setItem("cart", JSON.stringify(serverCart));
+        alert('Added to cart 🛒');
+        return;
+      } catch (err) {
+        console.error('Error adding item to cart:', err);
+        alert('Failed to add product to cart. Please try again.');
+        return;
+      }
     }
 
-    localStorage.setItem('cart', JSON.stringify(cart));
+    const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+    const existing = cart.find((item: any) => item.id === product._id);
+
+    let updatedCart;
+
+    if (existing) {
+      updatedCart = cart.map((item: any) =>
+        item.id === product._id ? { ...item, quantity: item.quantity + quantity } : item
+      );
+    } else {
+      updatedCart = [...cart, {
+        id: product._id,
+        name: product.name,
+        price: product.price,
+        quantity,
+        image: product.image,
+        category: product.category || "",
+      }];
+    }
+
+    localStorage.setItem('cart', JSON.stringify(updatedCart));
+    setCartItems(updatedCart);
     alert('Added to cart 🛒');
   };
 

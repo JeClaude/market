@@ -25,6 +25,7 @@ type Product = {
     image?: string;
     attributes: Record<string, any>;
   }>;
+  images?: Array<{ url: string; alt: string; isPrimary: boolean }>;
 };
 
 type CategoryType = {
@@ -33,6 +34,7 @@ type CategoryType = {
   name: string;
   subcategories: string[];
   brands: string[];
+  specifications?: Record<string, string[]>;
   isActive: boolean;
   order: number;
 };
@@ -76,6 +78,28 @@ const AdminProducts = () => {
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const getCategoryByKey = (categoryKey: string) => {
+    return categories.find((cat) => cat.key === categoryKey);
+  };
+
+  const buildSpecificationsFromCategory = (
+    categoryKey: string,
+    existingSpecs: Record<string, any> = {}
+  ) => {
+    const category = getCategoryByKey(categoryKey);
+    const specs: Record<string, any> = {};
+
+    if (!category?.specifications) {
+      return existingSpecs;
+    }
+
+    Object.entries(category.specifications).forEach(([specKey, values]) => {
+      specs[specKey] = existingSpecs[specKey] ?? "";
+    });
+
+    return specs;
+  };
 
   const token = localStorage.getItem("token");
 
@@ -201,7 +225,11 @@ const AdminProducts = () => {
 
   // Update functions
   const openUpdate = (product: Product) => {
-    setSelectedProduct(product);
+    const specs = buildSpecificationsFromCategory(product.category || "", product.specifications || {});
+    setSelectedProduct({
+      ...product,
+      specifications: specs
+    });
     setIsModalOpen(true);
   };
 
@@ -215,12 +243,24 @@ const AdminProducts = () => {
         ...selectedProduct,
         [name]: checked,
       });
-    } else {
+      return;
+    }
+
+    if (name === "category") {
       setSelectedProduct({
         ...selectedProduct,
-        [name]: value,
+        category: value,
+        subcategory: "",
+        brand: "",
+        specifications: buildSpecificationsFromCategory(value, selectedProduct.specifications || {})
       });
+      return;
     }
+
+    setSelectedProduct({
+      ...selectedProduct,
+      [name]: value,
+    });
   };
 
   const handleUpdate = async () => {
@@ -257,12 +297,42 @@ const AdminProducts = () => {
         ...newProduct,
         [name]: checked,
       });
-    } else {
+      return;
+    }
+
+    if (name === "category") {
       setNewProduct({
         ...newProduct,
-        [name]: value,
+        category: value,
+        subcategory: "",
+        brand: "",
+        specifications: buildSpecificationsFromCategory(value)
       });
+      return;
     }
+
+    setNewProduct({
+      ...newProduct,
+      [name]: value,
+    });
+  };
+
+  const updateSpecificationValue = (
+    target: "new" | "selected",
+    key: string,
+    value: string
+  ) => {
+    const productState = target === "new" ? newProduct : selectedProduct;
+    const setter = target === "new" ? setNewProduct : setSelectedProduct;
+    if (!productState) return;
+
+    setter({
+      ...productState,
+      specifications: {
+        ...(productState.specifications || {}),
+        [key]: value
+      }
+    });
   };
 
   const addVariant = () => {
@@ -753,6 +823,50 @@ const AdminProducts = () => {
                   </div>
                 )}
               </div>
+
+              {/* Specifications Section */}
+              <div className="mb-6">
+                <h3 className="text-lg font-semibold text-gray-800 mb-3 border-b border-gray-200 pb-2">Product Specifications</h3>
+                {newProduct.category ? (
+                  <>
+                    {Object.entries(getCategoryByKey(newProduct.category)?.specifications || {}).length === 0 ? (
+                      <p className="text-sm text-gray-500">This category has no predefined specifications. Add spec definitions in Admin Categories.</p>
+                    ) : (
+                      <div className="space-y-4">
+                        {Object.entries(getCategoryByKey(newProduct.category)?.specifications || {}).map(([specKey, options]) => (
+                          <div key={specKey} className="grid gap-2 sm:grid-cols-[1fr_180px] items-center">
+                            <div>
+                              <label className="block text-xs font-semibold text-gray-700 mb-1">{specKey}</label>
+                              {Array.isArray(options) && options.length > 0 ? (
+                                <select
+                                  value={newProduct.specifications?.[specKey] || ""}
+                                  onChange={(e) => updateSpecificationValue("new", specKey, e.target.value)}
+                                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
+                                >
+                                  <option value="">Select {specKey}</option>
+                                  {options.map((option) => (
+                                    <option key={option} value={option}>{option}</option>
+                                  ))}
+                                </select>
+                              ) : (
+                                <input
+                                  value={newProduct.specifications?.[specKey] || ""}
+                                  onChange={(e) => updateSpecificationValue("new", specKey, e.target.value)}
+                                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
+                                  placeholder={`Enter ${specKey}`}
+                                />
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    <p className="mt-3 text-xs text-gray-500">Need more specification types? Add them in Admin Categories.</p>
+                  </>
+                ) : (
+                  <p className="text-sm text-gray-500">Choose a category to load its product specifications.</p>
+                )}
+              </div>
             </div>
 
             <div className="sticky bottom-0 bg-gray-50 border-t border-gray-200 px-6 py-4">
@@ -987,6 +1101,50 @@ const AdminProducts = () => {
                   </div>
                 </div>
               )}
+
+              {/* Specifications Section */}
+              <div className="mb-6">
+                <h3 className="text-lg font-semibold text-gray-800 mb-3 border-b border-gray-200 pb-2">Product Specifications</h3>
+                {selectedProduct.category ? (
+                  <>
+                    {Object.entries(getCategoryByKey(selectedProduct.category)?.specifications || {}).length === 0 ? (
+                      <p className="text-sm text-gray-500">This category has no predefined specifications. Add spec definitions in Admin Categories.</p>
+                    ) : (
+                      <div className="space-y-4">
+                        {Object.entries(getCategoryByKey(selectedProduct.category)?.specifications || {}).map(([specKey, options]) => (
+                          <div key={specKey} className="grid gap-2 sm:grid-cols-[1fr_180px] items-center">
+                            <div>
+                              <label className="block text-xs font-semibold text-gray-700 mb-1">{specKey}</label>
+                              {Array.isArray(options) && options.length > 0 ? (
+                                <select
+                                  value={selectedProduct.specifications?.[specKey] || ""}
+                                  onChange={(e) => updateSpecificationValue("selected", specKey, e.target.value)}
+                                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
+                                >
+                                  <option value="">Select {specKey}</option>
+                                  {options.map((option) => (
+                                    <option key={option} value={option}>{option}</option>
+                                  ))}
+                                </select>
+                              ) : (
+                                <input
+                                  value={selectedProduct.specifications?.[specKey] || ""}
+                                  onChange={(e) => updateSpecificationValue("selected", specKey, e.target.value)}
+                                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
+                                  placeholder={`Enter ${specKey}`}
+                                />
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    <p className="mt-3 text-xs text-gray-500">Need more specification types? Add them in Admin Categories.</p>
+                  </>
+                ) : (
+                  <p className="text-sm text-gray-500">Choose a category to load its product specifications.</p>
+                )}
+              </div>
 
               {/* Description */}
               <div className="mb-6">

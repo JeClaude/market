@@ -25,25 +25,38 @@ function App() {
   // --- Load cart on app start ---
   useEffect(() => {
     const loadCart = async () => {
+      const localCart = JSON.parse(localStorage.getItem("cart") || "[]");
+
       if (token) {
         try {
           const res = await axios.get("http://localhost:5000/api/cart", {
             headers: { Authorization: `Bearer ${token}` },
           });
-          const serverCart = res.data.items.map((item: any) => ({
-            id: item.product._id,
-            name: item.product.name,
-            price: item.product.price,
-            quantity: item.quantity,
-            image: item.product.image,
-            category: item.product.category || "",
-          }));
+          const serverCart = (res.data.items || [])
+            .filter((item: any) => item && item.product)
+            .map((item: any) => ({
+              id: item.product._id,
+              name: item.product.name,
+              price: item.product.price,
+              quantity: item.quantity,
+              image: item.product.image,
+              category: item.product.category || "",
+            }));
           setCartItems(serverCart);
-        } catch (err) {
-          console.error("Error loading server cart:", err);
+        } catch (err: any) {
+          const status = err?.response?.status;
+          if (status === 401 || status === 403) {
+            console.warn("Server cart request unauthorized, falling back to local cart.");
+            localStorage.removeItem("token");
+            localStorage.removeItem("user");
+            localStorage.removeItem("role");
+            setIsLoggedIn(false);
+            setCartItems(localCart);
+          } else {
+            console.error("Error loading server cart:", err);
+          }
         }
       } else {
-        const localCart = JSON.parse(localStorage.getItem("cart") || "[]");
         setCartItems(localCart);
       }
     };
@@ -85,6 +98,7 @@ function App() {
             <Route path="/" element={<Home />} />
             <Route path="/products" element={<Products cartItems={cartItems} setCartItems={setCartItems} />} />
             <Route path="/product/:id" element={<ProductDetail cartItems={cartItems} setCartItems={setCartItems} />} />
+            <Route path="/cart" element={<Cart cartItems={cartItems} setCartItems={setCartItems} />} />
             <Route path="/checkout" element={
               <ProtectedRoute>
                 <Checkout />

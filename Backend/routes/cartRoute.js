@@ -8,7 +8,7 @@ const router = express.Router();
 // GET current user's cart
 router.get("/", authMiddleware, async (req, res) => {
   try {
-    const cart = await Cart.findOne({ user: req.user.id }).populate("items.product");
+    const   cart = await Cart.findOne({ user: req.user.id }).populate("items.product");
     if (!cart) return res.status(200).json({ items: [] });
     res.status(200).json(cart);
   } catch (error) {
